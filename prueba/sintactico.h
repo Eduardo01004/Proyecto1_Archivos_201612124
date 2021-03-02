@@ -15,6 +15,7 @@
 #include "fdisk.h"
 #include "rep.h"
 #include "mount.h"
+#include "mkfs.h"
 
 using namespace std;
 
@@ -35,13 +36,16 @@ public:
     int flag_exec = 0;
     int flag_rep = 0;
     int flag_mount = 0;
+    int flag_unmount = 0;
+    int flag_mkfs = 0;
+    int flag_login = 0;
 
     Mkdisk *mk = new Mkdisk();
     Rmdisk *rm = new Rmdisk();
     Fdisk *fd = new Fdisk();
-    REP *re = new REP();
     Mount *mo = new Mount();
-
+    REP *re = new REP();
+    Mkfs *mkf = new Mkfs();
 
 
 

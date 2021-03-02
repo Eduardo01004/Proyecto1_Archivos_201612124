@@ -8,6 +8,7 @@ Sintactico *sin2 = new Sintactico();
 Mkdisk *o1 = new Mkdisk();
 Rmdisk *r1 = new Rmdisk();
 Fdisk *f1 = new Fdisk();
+Mount *m1 = new Mount();
 
 const char* palabrasReservadas22(char palabra[400]);
 void Ejecutar::Ejec(char lexema[400], char token[400], int flag){
@@ -43,7 +44,6 @@ void Ejecutar::Ejec(char lexema[400], char token[400], int flag){
         if (strcmp(lexema,"finInstruccion") == 0){
             FILE *archivo;
             char str[1500];
-           cout << adress <<endl;
             if(archivo = fopen(adress,"rb+")){
                 char* line=NULL;
                 size_t len=0;
@@ -54,6 +54,8 @@ void Ejecutar::Ejec(char lexema[400], char token[400], int flag){
                         o1->estadomkdisk = 0;
                         r1->estadormdisk = 0;
                         f1->estadoFdisk = 0;
+                        m1->estadomount = 0;
+
                         memset(token, 0, sizeof(token));
                         memset(lexema, 0, sizeof(lexema));
                         memset(adress, 0, sizeof(adress));

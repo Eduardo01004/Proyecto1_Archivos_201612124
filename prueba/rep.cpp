@@ -1,5 +1,6 @@
 #include "rep.h"
 
+
 REP::REP()
 {
 
@@ -23,6 +24,20 @@ void REP::AutomataRep(QString lexema,QString token,int flag){
         }else if (lexema == "ruta"){
             estadorep = 5;
         }else if (lexema == "finInstruccion"){
+            if (flag_namerep ){
+                if (flag_pat){
+                    if (flag_rep){
+                        QString direccion = "";//l.lista->Direccion(idrep);
+                       // l->lista.A(idrep);
+                        if (direccion != ""){
+
+                        }else cout << "NO existe el id: " << idrep.toStdString() << endl;
+
+                    }else cout << "Parametro id obligatorio" << endl;
+
+                }else cout << "Parametro path es obligatorio" << endl;
+
+            }else cout << "Parametro name es obligatorio " << endl;
 
         }else cout << "Atributo para el Parametro Rep no reconocido" << token.toStdString() <<endl;
         break;

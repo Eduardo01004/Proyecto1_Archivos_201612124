@@ -11,6 +11,7 @@
 #include <dirent.h>
 #include <QStringList>
 #include "Structs.h"
+#include "listamount.h"
 using namespace std;
 class Fdisk
 {
@@ -18,13 +19,15 @@ public:
     Fdisk();
     void AutomataFdisk(QString,QString,int);
     bool BuscarParticion(QString nombre,QString direccion);
-    void CrearParticionPrimaria(QString path,char unit,int size,QString type,QString);
-    void CrearExtendida(QString path,char unit,int size,QString type,QString);
+    void CrearParticionPrimaria(QString path,char unit,int size,QString type,QString,QString fit);
+    void CrearExtendida(QString path,char unit,int size,QString type,QString,QString fit);
     void CrearLogica(QString path,char unit,int size,QString type,QString name,QString fit);
     int Size(char,int);
     bool Existe_Extendida(MBR m,int);
     void LLenarEBR(EBR ebr,char fit,QString name,int inicio, int next,int tam);
     int pos_Extendida(MBR m);
+    void EliminarParticion(QString path, QString name,QString tipo);
+    int  BuscarnamePart(QString name,MBR mbr);
 
     int estadoFdisk = 0;
     int deletefdisk = 0;

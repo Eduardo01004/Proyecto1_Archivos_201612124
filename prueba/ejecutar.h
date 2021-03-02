@@ -13,6 +13,7 @@
 #include "sintactico.h"
 #include "Structs.h"
 #include "lexico.h"
+#include "mount.h"
 
 using namespace std;
 

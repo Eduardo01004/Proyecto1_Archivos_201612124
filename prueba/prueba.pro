@@ -17,7 +17,12 @@ SOURCES += \
     exec.cpp \
     ejecutar.cpp \
     mount.cpp \
-    rep.cpp
+    rep.cpp \
+    listamount.cpp \
+    nodolist.cpp \
+    graficas.cpp \
+    mkfs.cpp \
+    login.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -35,4 +40,9 @@ HEADERS += \
     exec.h \
     ejecutar.h \
     mount.h \
-    rep.h
+    rep.h \
+    listamount.h \
+    nodolist.h \
+    graficas.h \
+    mkfs.h \
+    login.h

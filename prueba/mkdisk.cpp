@@ -38,7 +38,10 @@ void Mkdisk:: automataMkdisk(QString lexema,QString token,int flag){
                         int total = 1024;
                         CrearDisco(pathmk);
                         MBR mb;
-                        mb.mbr_fecha_creacion = time(0);
+                        time_t t = time(nullptr);
+                        tm *now = localtime(&t);
+                        string date = to_string(now->tm_mday) + "-" + to_string((now->tm_mon+1)) + "-" + to_string((now->tm_year + 1900)) + " " + to_string(now->tm_hour) + ":" + to_string(now->tm_min);
+                        strcpy(mb.mbr_fecha_creacion, date.c_str());
                         mb.mbr_disksignature =(int)time(nullptr);
                         if (unitmkdisk == 0){
                             mb.mbr_tamano = tammkdisk * 1048576;
@@ -55,7 +58,6 @@ void Mkdisk:: automataMkdisk(QString lexema,QString token,int flag){
 
                         if (fit_mkdisk == 1){
                             mb.disk_fit = fitmk;
-                            cout << fitmk << endl;
                         }else mb.disk_fit = 'F';
 
                         for (int i = 0; i < 4; i++){

@@ -11,6 +11,9 @@
 #include <dirent.h>
 #include <QStringList>
 #include "Structs.h"
+#include "listamount.h"
+#include "mount.h"
+#include "nodolist.h"
 using namespace std;
 
 class REP
@@ -27,6 +30,10 @@ public:
     QString idrep = "";
     QString pathrep = "";
     QString rutarep = "";
+
+    listamount lis;
+
+    Mount l;
 };
 
 #endif // REP_H
