@@ -1,6 +1,15 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 #include <ctime>
+#include <iostream>
+#include <sys/stat.h>
+#include <fstream>
+#include "qdebug.h"
+#include "qstring.h"
+#include <stdlib.h>
+#include <ctime>
+#include <dirent.h>
+#include <QStringList>
 typedef struct {
    char part_status;
    char part_type;
@@ -84,11 +93,12 @@ typedef struct{
     char Journal_propietario[16];
     int Journal_Permisos;
 }JOURNAL;
+
 typedef struct{
     int id_user;
     int id_grup;
-    char usuario[12];
-    char password [12];
-    char grupo[12];
+    int iniciosuper;
+    QString direccion;
+    char fit;
 }USERLOG;
 #endif // STRUCTS_H

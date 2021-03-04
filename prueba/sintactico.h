@@ -17,6 +17,7 @@
 #include "mount.h"
 #include "mkfs.h"
 
+
 using namespace std;
 
 
@@ -39,6 +40,8 @@ public:
     int flag_unmount = 0;
     int flag_mkfs = 0;
     int flag_login = 0;
+    int flag_mkgrp = 0;
+    int flag_mkusr = 0;
 
     Mkdisk *mk = new Mkdisk();
     Rmdisk *rm = new Rmdisk();

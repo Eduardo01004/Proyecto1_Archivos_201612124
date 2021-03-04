@@ -78,10 +78,30 @@ public:
     int flag_pass = 0;
     int flag_idlog = 0;
     int flag_session = 0;
+    int flag_root = 0;
 
     QString usr = "";
     QString pass = "";
     QString idlog = "";
+
+    //logout
+    void AutomataLogout();
+
+    //---------------para mkgrp
+    void AutomataMkgrp(QString lexema, QString token,int flag);
+    int estadomkgrp = 0;
+    QString mk_name = "";
+
+
+    //para mkusr
+    void AutomataMkusr(QString lexema,QString token, int flag);
+    int estadomkusr = 0;
+    int flag_usr_usr = 0;
+    int flag_pwd_usr = 0;
+    int flag_usr_grp = 0;
+    QString usr_usr = "";
+    QString pass_usr = "";
+    QString grp_usr = "";
 
    //
 };

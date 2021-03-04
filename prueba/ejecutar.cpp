@@ -275,6 +275,8 @@ const char* palabrasReservadas22(char palabra[400]){
         return "dest";
     }else if(strcmp(palabra, "rem") == 0 || strcmp(palabra, "Rem") == 0 ){
         return "rem";
+    }else if (strcmp(palabra, "pause") == 0 || strcmp(palabra, "Pause") == 0 ){
+        return "pause";
     }else{
         return "palabra";
     }

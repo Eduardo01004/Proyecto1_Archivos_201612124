@@ -188,9 +188,9 @@ const char* palabrasReservadas(char palabra[400]){
         return "p";
     }else if(strcmp(palabra, "mkfile") == 0 || strcmp(palabra, "Mkfile") == 0 ){
         return "mkfile";
-    }else if(strcmp(palabra, "-cont->") == 0 || strcmp(palabra, "-Cont->") == 0 ){
+    }else if(strcmp(palabra, "-cont=") == 0 || strcmp(palabra, "-Cont=") == 0 ){
         return "cont";
-    }else if(strcmp(palabra, "-ruta->") == 0 || strcmp(palabra, "-Ruta->") == 0 ){
+    }else if(strcmp(palabra, "-ruta=") == 0 || strcmp(palabra, "-Ruta=") == 0 ){
         return "ruta";
     }else if(strcmp(palabra, "Loss") == 0 || strcmp(palabra, "loss") == 0 ){
         return "loss";
@@ -208,11 +208,14 @@ const char* palabrasReservadas(char palabra[400]){
         return "cat";
     }else if(strcmp(palabra, "mv") == 0 || strcmp(palabra, "MV") == 0 ){
         return "mv";
-    }else if(strcmp(palabra, "-dest->") == 0 || strcmp(palabra, "-Dest->") == 0 ){
+    }else if(strcmp(palabra, "-dest=") == 0 || strcmp(palabra, "-Dest=") == 0 ){
         return "dest";
     }else if(strcmp(palabra, "rem") == 0 || strcmp(palabra, "Rem") == 0 ){
         return "rem";
-    }else{
+    }else if (strcmp(palabra, "pause") == 0 || strcmp(palabra, "Pause") == 0 ){
+        return "pause";
+    }
+    else{
         return "palabra";
     }
 

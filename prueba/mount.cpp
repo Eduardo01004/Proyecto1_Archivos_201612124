@@ -515,7 +515,11 @@ void Mount:: AutomataLogin(QString lexema,QString token,int flag){
                                     }
                                     if (index != -1){
                                         EBR eb;
+                                        if (usr == "root") flag_root = 1;
                                         log->Loguear(index,disco,auxmbr,aux->direccion,usr,pass,userlog,0,1,eb);
+                                        estadologin = 0;
+                                        flag = 0;
+                                        flag_session = 1;
 
                                     }else {
                                         FILE *disco;
@@ -610,4 +614,172 @@ void Mount:: AutomataLogin(QString lexema,QString token,int flag){
 
     }
 
+}
+
+
+void Mount:: AutomataLogout(){
+    if (flag_session){
+        flag_session = 0;
+        flag_root = 0;
+        log->path = "";
+        log->inicioSuper = -1;
+        log->id_user = -1;
+    }else cout << "Error no existe ninguna sesion a la cual hacerle Logout" << endl;
+}
+
+
+void Mount::AutomataMkgrp(QString lexema, QString token,int flag){
+    switch (estadomkgrp) {
+    case 0:
+        estadomkgrp = 1;
+        break;
+    case 1:
+        if (lexema == "name"){
+            estadomkgrp = 2;
+        }else {
+            estadomkgrp = 0;
+            flag = 0;
+            cout << "Error se esperaba el parametro name" << endl;
+        }
+        break;
+    case 2:
+        if(lexema == "palabra"){
+            estadomkgrp = 3;
+            mk_name = token;
+        }else {
+            estadomkgrp = 0;
+            flag = 0;
+            cout << "Error se esperaba el parametro name" << endl;
+        }
+        break;
+    case 3:
+        if (lexema == "finInstruccion"){
+            if (flag_session){
+                if (flag_root){
+                    estadomkgrp = 0;
+                    int buscar = log->BuscarG(mk_name,log->inicioSuper);
+                    if (buscar == -1) cout << "El nombre del grupo ya existe " <<endl;
+                    else {
+                        FILE *disco;
+                        disco=fopen(log->path.toStdString().c_str(),"r+b");
+                        if (strlen(mk_name.toStdString().c_str()) < 10){
+                            cout << "numero de grupo: " << buscar << endl;
+                            char temp[66]="\0";
+                            memset(temp,0,sizeof(temp));
+                            sprintf(temp,"%s%d",temp,buscar);
+                            strcat(temp,", G, ");
+                            strcat(temp,mk_name.toStdString().c_str());
+                            strcat(temp,"\n");
+                            int res = log->CrearGrupo(disco,temp,log->path);
+                            if (res == 1) cout << "grupo creado con exito " <<endl;
+                            else cout << " no se pudo crear el grupo" << endl;
+
+                        }else cout << "El nombre del grupo excede los 10 caracteres" <<endl;
+
+                    }
+
+
+                }else {
+                    estadomkgrp = 0;
+                    flag = 0;
+                    cout << "Error solo el usuario root puede ejecutar el comando Mkgrp "<< endl;
+                }
+
+            }else {
+                estadomkgrp = 0;
+                flag = 0;
+                cout << "Error se necesita tener una sesion Activa" << endl;
+            }
+
+        }else {
+            estadomkgrp = 0;
+            flag = 0;
+            cout << "Error no se reconoce el comando" << endl;
+        }
+    }
+
+
+}
+
+
+
+void Mount::AutomataMkusr(QString lexema,QString token, int flag){
+    switch (estadomkusr) {
+    case 0:
+        estadomkusr = 1;
+        break;
+    case 1:
+        if (lexema == "usr"){
+            estadomkusr = 2;
+            flag_usr_usr = 1;
+        }else if(lexema == "pwd"){
+            estadomkusr = 3;
+            flag_pwd_usr = 1;
+        }else if (lexema == "grp"){
+            estadomkusr = 4;
+            flag_usr_grp = 1;
+        }else if (lexema == "finInstruccion"){
+            estadomkusr = 0;
+            if (flag_session){
+                if (flag_root){
+                    if (flag_usr_usr && flag_usr_grp && flag_pwd_usr){
+                        int buscar = log->BuscarG(grp_usr,log->inicioSuper);
+                        if ( buscar == -1){ // que si existe
+
+                        }else{
+                            estadomkusr = 0;
+                            flag = 0;
+                            cout << "Error el grupo no existe"<< endl;
+                        }
+
+
+                    }else {
+                        estadomkusr = 0;
+                        flag = 0;
+                        cout << "Error parametros incorrectos "<< endl;
+                    }
+
+                }else {
+                    estadomkusr = 0;
+                    flag = 0;
+                    cout << "Error solo el usuario root puede ejecutar el comando Mkusr"<< endl;
+                }
+
+            }else {
+                estadomkusr = 0;
+                flag = 0;
+                cout << "Error no hay una sesion activa."<< endl;
+            }
+
+        }else {
+            estadomkusr = 0;
+            flag = 0;
+            cout << "Error no se reconoce el comando. "<< endl;
+        }
+        break;
+    case 2:
+        if (lexema == "palabra"){
+            estadomkusr = 1;
+            usr_usr = token;
+        }else {
+            estadomkusr = 0;
+            flag = 0;
+            cout << "Error no se reconoce la palabra "<< endl;
+        }
+        break;
+    case 3:
+        pass_usr = token;
+        estadomkusr = 1;
+        break;
+    case 4:
+        if(lexema == "palabra"){
+            grp_usr = token;
+            estadomkusr = 1;
+        }else {
+            estadomkusr = 0;
+            flag = 0;
+            cout << "error no se reconoce la palabra "<< endl;
+        }
+        break;
+    }
 }

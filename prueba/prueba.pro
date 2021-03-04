@@ -22,7 +22,8 @@ SOURCES += \
     nodolist.cpp \
     graficas.cpp \
     mkfs.cpp \
-    login.cpp
+    login.cpp \
+    mkgrp.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -45,4 +46,5 @@ HEADERS += \
     nodolist.h \
     graficas.h \
     mkfs.h \
-    login.h
+    login.h \
+    mkgrp.h
