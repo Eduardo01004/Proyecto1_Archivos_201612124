@@ -68,6 +68,7 @@ int Mkgrp::llenar2(FILE *disco,superBloque super,bloqueArchivo archivo,inodeTabl
    super.s_free_block_count = superfree - 1;
    fseek(disco,iniciosuper,SEEK_SET);
    fwrite(&super,sizeof(superBloque),1,disco);
+   return 1;
 }
 
 int Mkgrp::firsFit(FILE *disco,int inicio){
@@ -79,6 +80,30 @@ int Mkgrp::firsFit(FILE *disco,int inicio){
 
     for (int i = 0; i < super.s_blocks_count; i++){
         fseek(disco,super.s_bm_block_start + i,SEEK_SET);
+        char byte;
+        fread(&byte,sizeof (char),1,disco);
+        if (byte == '0'){
+            bandera = true;
+            retorno = i;
+        }
+    }
+    if (bandera == true){
+        return retorno;
+    }else {
+        return -1;
+    }
+
+}
+
+int Mkgrp::firsFitInodo(FILE *disco,int inicio){
+    superBloque super;
+    int retorno = -1;
+    bool bandera = false;
+    fseek(disco,inicio,SEEK_SET);
+    fread(&super,sizeof(superBloque),1,disco);
+
+    for (int i = 0; i < super.s_inodes_count; i++){
+        fseek(disco,super.s_bm_inode_start + i,SEEK_SET);
         char byte;
         fread(&byte,sizeof (char),1,disco);
         if (byte == '0'){

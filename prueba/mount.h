@@ -15,6 +15,7 @@
 #include "graficas.h"
 #include "mkfs.h"
 #include "login.h"
+#include "mkdir.h"
 using namespace std;
 
 class Mount
@@ -103,6 +104,13 @@ public:
     QString pass_usr = "";
     QString grp_usr = "";
 
+    // para mkdir
+    void AutomataMkdir(QString lexema, QString token, int flag);
+    Mkdir dir;
+    int flag_mkdir_p = 0;
+    int flag_mkdir_path = 0;
+    QString path_mkdir = "";
+    int estadomkdir = 0;
    //
 };
 

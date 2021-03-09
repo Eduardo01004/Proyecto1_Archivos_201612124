@@ -24,6 +24,7 @@ public:
     int retornarinodo(superBloque super, FILE*disco);
     void marcar(superBloque super,FILE *disco);
     int retornartam(int numero);
+    int BuscarU(QString name, int inicio);
     char fit;
     int inicioSuper;
     QString path;

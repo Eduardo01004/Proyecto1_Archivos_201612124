@@ -663,7 +663,6 @@ void Mount::AutomataMkgrp(QString lexema, QString token,int flag){
                         FILE *disco;
                         disco=fopen(log->path.toStdString().c_str(),"r+b");
                         if (strlen(mk_name.toStdString().c_str()) < 10){
-                            cout << "numero de grupo: " << buscar << endl;
                             char temp[66]="\0";
                             memset(temp,0,sizeof(temp));
                             sprintf(temp,"%s%d",temp,buscar);
@@ -723,8 +722,22 @@ void Mount::AutomataMkusr(QString lexema,QString token, int flag){
             if (flag_session){
                 if (flag_root){
                     if (flag_usr_usr && flag_usr_grp && flag_pwd_usr){
+                        estadomkusr = 0;
                         int buscar = log->BuscarG(grp_usr,log->inicioSuper);
                         if ( buscar == -1){ // que si existe
+                            int user = log->BuscarU(usr_usr,log->inicioSuper);
+                            if ( user == -1 ) cout << "EL usuario ya existe " <<endl;
+                            else {
+                                FILE *disco;
+                                disco=fopen(log->path.toStdString().c_str(),"r+b");
+                                //QString contenido = QString::number(user) + ", U, "+grp_usr+", "+usr_usr+", "+pass_usr+"\n";
+                                char enviar[66];
+                                memset(enviar,0,sizeof(enviar));
+                                sprintf(enviar,"%d, U, %s, %s, %s\n",user,grp_usr.toStdString().c_str(),usr_usr.toStdString().c_str(),pass.toStdString().c_str());
+                                int res = log->CrearGrupo(disco,enviar,log->path);
+                                if (res == 1) cout << "Usuario creado con exito" << endl;
+                                else cout << "NO se pudo crear el usuario "<<endl;
+                            }
 
                         }else{
                             estadomkusr = 0;
@@ -782,4 +795,82 @@ void Mount::AutomataMkusr(QString lexema,QString token, int flag){
         }
         break;
     }
+}
+
+
+void Mount::AutomataMkdir(QString lexema, QString token, int flag){
+    switch (estadomkdir) {
+    case 0:
+        estadomkdir = 1;
+        break;
+    case 1:
+        if (lexema == "p"){
+            estadomkdir = 1;
+            flag_mkdir_p = 1;
+        }else if (lexema == "path"){
+            estadomkdir = 2;
+            flag_mkdir_path = 1;
+        }else if (lexema == "finInstruccion"){
+            estadomkdir = 0;
+            if (flag_session){
+                if (flag_mkdir_path){
+                    superBloque sb;
+                    FILE *DiscoEnUso;
+                    DiscoEnUso = fopen(log->path.toStdString().c_str(),"rb+");
+                    if (DiscoEnUso != nullptr){
+                        int numeracion = 0;
+                        fseek(DiscoEnUso,log->inicioSuper,SEEK_SET);
+                        fseek(DiscoEnUso,0,SEEK_SET);
+                        fread(&sb,sizeof(superBloque),1,DiscoEnUso);
+                        string aux = path_mkdir.toStdString();
+                        char auxPath[500];
+                        strcpy(auxPath,aux.c_str());
+                        int coco = dir.BuscarCoA(DiscoEnUso,auxPath,log->inicioSuper,&numeracion);
+                        cout << coco << "buscar " <<endl;
+                        if (coco == 1) cout << "ya existe el directorio"<< endl;
+                        else if (coco == 0){
+                           // cout << "se crea car[eta" <<endl;
+                            string aux = path_mkdir.toStdString();
+                            char auxPath[500];
+                            strcpy(auxPath,aux.c_str());
+                            int respuesta = dir.CrearCarpeta(DiscoEnUso,'F',0,log->inicioSuper,auxPath,flag_mkdir_p);
+                            if (respuesta == 4) cout << "La direccion no existe  y no se puede crear por falta del comando P" <<endl;
+                            else cout << "Se creo la carpeta con exito" <<endl;
+                            fclose(DiscoEnUso);
+                        }
+                    }else cout << "NO existe el disco "<<endl;
+
+
+
+
+                }else {
+                    cout << "parametro path obligatorio" <<endl;
+                    estadomkdir = 0;
+                    flag = 0;
+                }
+
+            }else {
+                cout << "error no hay una session activa" <<endl;
+                estadomkdir = 0;
+                flag = 0;
+            }
+
+        }else {
+            cout << "no se reconoce el comando" <<endl;
+            estadomkdir = 0;
+            flag = 0;
+        }
+        break;
+    case 2:
+        if (lexema == "palabra"){
+           path_mkdir = token;
+           estadomkdir = 1;
+        }else {
+            cout << "error se esperaba un path" <<endl;
+            estadomkdir = 0;
+            flag = 0;
+        }
+        break;
+    }
+
 }

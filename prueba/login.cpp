@@ -54,6 +54,7 @@ void Login::Loguear(int index,FILE *disco,MBR auxmbr,QString direccion,QString u
                 }else cout << "Error EL usuario no existe" << endl;
             }
         }
+
         for(QString aux : lista1)
         {
             QStringList lista2 = aux.split(',');
@@ -125,7 +126,6 @@ QString Login::retornarContent(QString direccion,int inicioI,int InicioB){
     char* result="";
     FILE *disco = fopen(direccion.toStdString().c_str(),"rb+");
     FILE *discoaux =fopen(direccion.toStdString().c_str(),"rb+");
-    char cadena[300]="\0";
     QString contenido = "";
     if(disco != nullptr){
         if (discoaux != nullptr){
@@ -190,8 +190,6 @@ int Login::BuscarG(QString name, int inicio){
             }else {
                 grup = atoi(lista2.value(0).toStdString().c_str()) + 1;
                 grupo = grupo + 1;
-                //cout << "grup: "<< grup++ << endl;
-                //return grupo;
             }
         }
     }
@@ -292,5 +290,45 @@ int Login::retornarinodo(superBloque super, FILE*disco){
 
 int Login::retornartam(int numero){
     return 63 - numero;
+
+}
+
+
+int Login::BuscarU(QString name, int inicio){
+    superBloque super;
+    inodeTable inodo;
+    FILE *disco;
+    disco = fopen(path.toStdString().c_str(),"rb+");
+    fseek(disco,inicio,SEEK_SET);
+
+    fread(&super,sizeof(superBloque),1,disco);
+    fseek(disco,super.s_inode_start+sizeof(inodeTable),SEEK_SET);
+
+    fread(&inodo,sizeof(inodeTable),1,disco);
+    fseek(disco,super.s_inode_start+sizeof(inodeTable),SEEK_SET);
+    fclose(disco);
+
+    QString contenido = retornarContent(path,super.s_inode_start + sizeof(inodeTable),super.s_block_start);
+    cout << contenido.toStdString() << endl;
+    QStringList lista1 = contenido.split('\n');
+    int grup;
+    int grupo = 1;
+    for(QString aux : lista1)
+    {
+        QStringList lista2 = aux.split(',');
+        string co = lista2.value(1).toStdString();
+        if(co == " U"){
+            string caca = " " + name.toStdString();
+            if (lista2.value(3).toStdString() == caca){
+                return -1;
+            }else {
+                grup = atoi(lista2.value(0).toStdString().c_str()) + 1;
+                grupo = grupo + 1;
+            }
+        }
+
+    }
+
+    return grupo;
 
 }

@@ -23,7 +23,9 @@ SOURCES += \
     graficas.cpp \
     mkfs.cpp \
     login.cpp \
-    mkgrp.cpp
+    mkgrp.cpp \
+    mkusr.cpp \
+    mkdir.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -47,4 +49,6 @@ HEADERS += \
     graficas.h \
     mkfs.h \
     login.h \
-    mkgrp.h
+    mkgrp.h \
+    mkusr.h \
+    mkdir.h

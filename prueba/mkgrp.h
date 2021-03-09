@@ -21,6 +21,7 @@ public:
     int llenar1(FILE *disco,superBloque super,bloqueArchivo archivo,inodeTable inodouser,int posicion, char cadena[400],int tam_actual);
     int llenar2(FILE *disco,superBloque super,bloqueArchivo archivo,inodeTable inodouser,int posicion, char fase2[400],int tam_actual,int iniciosuper,char fit);
     int firsFit(FILE *disco,int inicio);
+    int firsFitInodo(FILE *disco,int inicio);
 };
 
 #endif // MKGRP_H
