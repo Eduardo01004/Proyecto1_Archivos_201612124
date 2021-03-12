@@ -20,7 +20,7 @@ public:
     void Loguear(int index,FILE *disco,MBR auxmbr,QString direccion,QString usr,QString pass,USERLOG userlog,int index2,int tipo,EBR ebr);
     QString retornarContent(QString direccion,int inicioI,int InicioB);
     int BuscarG(QString path, int inicio);
-    int CrearGrupo(FILE *disco,char contenido[64],QString direccion);
+    int CrearGrupo(FILE *disco,QString contenido,QString direccion);
     int retornarinodo(superBloque super, FILE*disco);
     void marcar(superBloque super,FILE *disco);
     int retornartam(int numero);

@@ -43,6 +43,7 @@ public:
     int flag_mkgrp = 0;
     int flag_mkusr = 0;
     int flag_mkdir = 0;
+    int flag_mkfile = 0;
 
     Mkdisk *mk = new Mkdisk();
     Rmdisk *rm = new Rmdisk();

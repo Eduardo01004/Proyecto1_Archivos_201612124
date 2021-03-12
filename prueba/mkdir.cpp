@@ -32,15 +32,13 @@ int Mkdir::BuscarCoA(FILE *DiscoEnUSo,char *path, int inicio,int *numeracion){
     int LugarInododo = 0;
 
     int contador=0;
-
-    while(token != NULL)
-        {
-            listapath[contador]=(char*)malloc(200);
-            strcpy(listapath[contador],token);
-            //printf("LISTA POSICION %d: %s\n", contador,listapath[contador]);
-            contador=contador+1;
-            token = strtok(NULL, "/");
+    QList<string> lista = QList<string>();
+    while(token != nullptr){
+            contador = contador +1;
+            lista.append(token);
+            token = strtok(nullptr,"/");
         }
+
     fseek(DiscoEnUSo,inicio,SEEK_SET);
     fread(&sb,sizeof(superBloque),1,DiscoEnUSo);
     LugarInododo = sb.s_inode_start;
@@ -56,18 +54,18 @@ int Mkdir::BuscarCoA(FILE *DiscoEnUSo,char *path, int inicio,int *numeracion){
                 fseek(DiscoEnUSo,sb.s_block_start + (sizeof(bloqueCarpetas) * InodoUso.i_block[j]),SEEK_SET);
                 fread(&BC,sizeof(bloqueCarpetas),1,DiscoEnUSo);
                 for (int y = 0; y < 4; y++){
-                    QString name = "";
+                    /*QString name = "";
                     for(char c : BC.b_content[y].b_name)
                     {
                         if(c != NULL)
                         {
                         name.append(c);
                         }
-                    }
-                    if ((i == contador - 1)&&(strcasecmp(BC.b_content[y].b_name,listapath[i]) == 0)){
+                    }*/
+                    if ((i == contador - 1)&&(strcasecmp(BC.b_content[y].b_name,lista.at(i).c_str()) == 0)){
                         *numeracion = BC.b_content[y].b_inodo;
                         return 1;
-                    }else if ((i != contador - 1)&&(strcasecmp(BC.b_content[y].b_name,listapath[i]) == 0)) {
+                    }else if ((i != contador - 1)&&(strcasecmp(BC.b_content[y].b_name,lista.at(i).c_str()) == 0)) {
                         fseek(DiscoEnUSo,inicio,SEEK_SET);
                         fread(&sb,sizeof(superBloque),1,DiscoEnUSo);
                         LugarInododo = sb.s_inode_start + (sizeof(inodeTable)*BC.b_content[y].b_inodo);
@@ -91,13 +89,12 @@ int Mkdir::BuscarCoA(FILE *DiscoEnUSo,char *path, int inicio,int *numeracion){
     return 0;
 }
 
-int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char* path,int flag_P){
+int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char* path,int flag_P,QString path2){
     char Unionpath[500];
         char COPIAUnionpath[500];
         inodeTable InodoUso,OTROBA;
         bloqueCarpetas BC,BC2,NueC;
         superBloque sb;
-        QList<string> lista = QList<string>();
         int contador = 0;
         int contador2 = 0;
         int iblock = 0;
@@ -105,6 +102,7 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
         int comprobacionRuta = 0;
         int LugarInododo = 0;
 
+        QList<string> lista = QList<string>();
         char copiaPath[500];
         char copiaPath2[500];
         char LarutaDelaCarpeta[500];
@@ -117,13 +115,12 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
         strcpy(copiaPath,path);
         strcpy(nombreCarpeta,basename(copiaPath));
         char *token = strtok(path,"/");
-        while(token != NULL)
-            {
-                listapath2[contador]=(char*)malloc(200);
-                strcpy(listapath2[contador],token);
-                //printf("LISTA POSICION %d: %s\n", contador,listapath[contador]);
-                contador=contador+1;
-                token = strtok(NULL, "/");
+        int cont = 0;
+
+        while(token != nullptr){
+                contador = contador +1;
+                lista.append(token);
+                token = strtok(nullptr,"/");
             }
         fseek(DiscoEnUso,inicio,SEEK_SET);
         fread(&sb,sizeof(superBloque),1,DiscoEnUso);
@@ -166,7 +163,7 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
 
                         }else if (fit == 'B'){
 
-                                    }
+                         }
                         BC.b_content[mover].b_inodo = bitLibre;
                         strcpy(BC.b_content[mover].b_name,nombreCarpeta);
                         fseek(DiscoEnUso,sb.s_block_start+(sizeof(bloqueCarpetas)*InodoUso.i_block[mover2]),SEEK_SET);
@@ -324,7 +321,8 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                     return 6;
                 }
 
-            }else if (contador >1){
+            }
+        else if (contador >1){
                 int SaberExiste = BuscarCoA(DiscoEnUso,LarutaDelaCarpeta,inicio,&LugarInododo);//ptrp
                 if(SaberExiste == 0){
                     if(flag_P == 0){
@@ -333,11 +331,12 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                         memset(Unionpath,0,sizeof(Unionpath));
                         for(contador2 = 0;contador2<contador;contador2++){
                             strcat(Unionpath, "\/");
-                            strcat(Unionpath,listapath2[contador2]);
+                            //strcat(Unionpath,listapath2[contador2]);
+                            strcat(Unionpath,lista.at(contador2).c_str());
                             strcpy(COPIAUnionpath,Unionpath);
                             int lovio = BuscarCoA(DiscoEnUso,Unionpath,inicio,&LugarInododo);
                             if(lovio == 0){
-                                CrearCarpeta(DiscoEnUso,fit,0,inicio,COPIAUnionpath,flag_P);
+                                CrearCarpeta(DiscoEnUso,fit,0,inicio,COPIAUnionpath,0,path2);
                             }
                         }
                     }
@@ -566,6 +565,7 @@ int Mkdir::firsFit(FILE *disco,int inicio){
         if (byte == '0'){
             bandera = true;
             retorno = i;
+            break;
         }
     }
     if (bandera == true){
@@ -589,6 +589,7 @@ int Mkdir::firsFitInodo(FILE *disco,int inicio){
         if (byte == '0'){
             bandera = true;
             retorno = i;
+            break;
         }
     }
     if (bandera == true){

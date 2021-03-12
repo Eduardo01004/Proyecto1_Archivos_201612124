@@ -25,7 +25,8 @@ SOURCES += \
     login.cpp \
     mkgrp.cpp \
     mkusr.cpp \
-    mkdir.cpp
+    mkdir.cpp \
+    mkfile.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -51,4 +52,5 @@ HEADERS += \
     login.h \
     mkgrp.h \
     mkusr.h \
-    mkdir.h
+    mkdir.h \
+    mkfile.h

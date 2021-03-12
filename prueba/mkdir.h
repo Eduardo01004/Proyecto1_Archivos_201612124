@@ -22,7 +22,7 @@ public:
     Mkdir();
     QString RetornarRuta(QString ruta);
     int BuscarCoA(FILE *disco,char *path, int inicio,int *numeracion);
-    int CrearCarpeta(FILE *DiscoEnUSo,char fit,int indicador,int inicio,char *path,int flag_P);
+    int CrearCarpeta(FILE *DiscoEnUSo,char fit,int indicador,int inicio,char *path,int flag_P,QString path2);
     Mkgrp mkg;
     int firsFit(FILE *disco,int inicio);
     int firsFitInodo(FILE *disco,int inicio);

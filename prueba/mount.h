@@ -16,6 +16,7 @@
 #include "mkfs.h"
 #include "login.h"
 #include "mkdir.h"
+#include "mkfile.h"
 using namespace std;
 
 class Mount
@@ -111,6 +112,17 @@ public:
     int flag_mkdir_path = 0;
     QString path_mkdir = "";
     int estadomkdir = 0;
+
+    //para mkfile
+    void AutomataMkfile(QString lexema, QString token, int flag);
+    mkfile mf;
+    int estadomkfile = 0;
+    int flag_mkfile_path = 0;
+    int flag_mkfile_r = 0;
+    int flag_mkfile_cont = 0;
+    QString mkfile_path = "";
+    int mkfile_size = 0;
+    QString mkfile_cont = "";
    //
 };
 

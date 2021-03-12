@@ -36,7 +36,7 @@ void Mount::AutomataMount(QString lexema, QString token , int flag){
                         int indice = BuscarParticionP(auxmbr,namemount);
                         int encontrado = false;
                         if (indice != -1){
-                            auxmbr.mbr_partition[indice].part_status='2';
+                            auxmbr.mbr_partition[indice+1].part_status='2';
                             fseek(disco,0,SEEK_SET);
                             fwrite(&auxmbr,sizeof(MBR),1,disco);
                             fseek(disco,0,SEEK_SET);
@@ -78,10 +78,10 @@ void Mount::AutomataMount(QString lexema, QString token , int flag){
                                 EBR ebr;
                                 int indice2 = BuscarL(mbr,namemount,ebr,pathmount,disco2);
                                 if (indice2 != -2){
-                                    fseek(disco2,indice2,SEEK_SET);
+                                    fseek(disco2,indice2+1,SEEK_SET);
                                     fread(&ebr,sizeof(EBR),1,disco2);
                                     ebr.part_status = '2';
-                                    fseek(disco2,indice2,SEEK_SET);
+                                    fseek(disco2,indice2+1,SEEK_SET);
                                     fwrite(&ebr,sizeof(EBR),1,disco2);
                                     fseek(disco2,0,SEEK_SET);
                                     fclose(disco2);
@@ -157,7 +157,7 @@ void Mount::AutomataMount(QString lexema, QString token , int flag){
 int Mount::BuscarParticionP(MBR mbr,QString nombre){
     int retorno = -1;
     for (int i = 0; i < 4; i++){
-        if(mbr.mbr_partition[i].part_status != '-1'){
+        if(mbr.mbr_partition[i].part_status != '1'){
             if (strcmp(mbr.mbr_partition[i].part_name,nombre.toStdString().c_str()) == 0 ) retorno = i;
         }
     }
@@ -182,13 +182,11 @@ int Mount::BuscarL(MBR mbr,QString nombre,EBR ebr,QString direccion,FILE *disco)
         int existe = 0;
         int peso = ftell(disco);
         int tamano = mbr.mbr_partition[poslogica].part_start + mbr.mbr_partition[poslogica].part_size;
-
-
-        while(fread(&auxebr,sizeof(EBR),1,disco) != 0 && peso < tamano  ){
+        while(fread(&auxebr,sizeof(EBR),1,disco) != 0 && ftell(disco) < tamano  ){
             if (strcmp(auxebr.part_name,nombre.toStdString().c_str()) == 0){
                 retorno = peso - sizeof(EBR);
                 break;
-            }else if (auxebr.part_next != -1){
+            }if (auxebr.part_next != -1){
             }else break;
         }
 
@@ -240,14 +238,56 @@ void Mount::AutomataRep(QString lexema,QString token,int flag){
             if (flag_namerep ){
                 if (flag_pat){
                     if (flag_rep){
-                        QString direccion = lista->Direccion(idrep);
-                        QString ext = lista->Extension(pathrep);
-                        if (direccion != ""){
-                            estadorep = 0;
-                            QString dato = retornarPath2(pathrep);
-                            mkdir(dato.toStdString().c_str(), 0777);
-                            if (flag_tipo == 0) gra->GraficarMBR_EBR(direccion,pathrep,ext);
-                            else if (flag_tipo == 1 ) gra->GraficarDisk(direccion,pathrep,ext);
+                        nodolist *aux = lista->BMount(idrep);
+                        if (aux != nullptr){
+                            QString direccion = lista->Direccion(idrep);
+                            QString ext = lista->Extension(pathrep);
+                            if (direccion != ""){
+                                estadorep = 0;
+                                QString dato = retornarPath2(pathrep);
+                                mkdir(dato.toStdString().c_str(), 0777);
+                                if (flag_tipo == 0) gra->GraficarMBR_EBR(direccion,pathrep,ext);
+                                else if (flag_tipo == 1 ) gra->GraficarDisk(direccion,pathrep,ext);
+                                else if( flag_tipo == 2){
+                                    MBR mbr;
+                                    FILE *disco;
+                                    disco = fopen(aux->direccion.toStdString().c_str(),"rb+");
+                                    fseek(disco,0,SEEK_SET);
+                                    fread(&mbr,sizeof(MBR),1,disco);
+                                    int index = BuscarParticionP(mbr,aux->name);
+                                    if (index != -1){
+                                        fseek(disco,mbr.mbr_partition[index+1].part_start,SEEK_SET);
+                                        superBloque super;
+                                        fread(&super,sizeof(superBloque),1,disco);
+                                        fclose(disco);
+                                        gra->Inode(aux->direccion,pathrep,ext,super.s_bm_inode_start,super.s_inode_start,super.s_bm_block_start,0);
+
+                                    }else {
+                                        MBR mbr2;
+                                        FILE *disco2;
+                                        disco2 = fopen(aux->direccion.toStdString().c_str(),"rb+");
+                                        fseek(disco2,0,SEEK_SET);
+                                        fread(&mbr2,sizeof(MBR),1,disco2);
+                                        EBR ebr;
+                                        int indice2 = BuscarL(mbr2,aux->name,ebr,aux->direccion,disco2);
+                                        if (indice2 != -2){
+                                            fseek(disco2,indice2,SEEK_SET);
+                                            fread(&ebr,sizeof(EBR),1,disco2);
+                                            superBloque super;
+                                            fread(&super,sizeof(superBloque),1,disco2);
+                                            fclose(disco);
+                                            cout << super.s_bm_inode_start + super.s_inodes_count<<endl;
+                                            gra->Inode(aux->direccion,pathrep,ext,super.s_bm_inode_start,super.s_bm_inode_start,super.s_bm_inode_start+super.s_inodes_count,0);
+
+                                        }else cout << "no se encuentra la particion logica " <<endl;
+
+
+                                    }
+
+                                }
+
+                        }
+
 
 
 
@@ -285,6 +325,9 @@ void Mount::AutomataRep(QString lexema,QString token,int flag){
             flag_tipo = 0;
         }else if (token == "disk"){
             flag_tipo = 1;
+            estadorep = 1;
+        }else if (token == "inode"){
+            flag_tipo = 2;
             estadorep = 1;
         }else {
             estadorep = 1000;
@@ -385,6 +428,7 @@ void Mount::AutomataMkfs(QString lexema,QString token,int flag){
                     MBR auxmbr;
                     FILE *disco = fopen(nodo->direccion.toStdString().c_str(),"rb+");
                     if (disco != nullptr){
+                        estadomkfs = 0;
                         fseek(disco,0,SEEK_SET);
                         fread(&auxmbr,sizeof(MBR),1,disco);
                         int index = BuscarParticionP(auxmbr,nodo->name);
@@ -393,7 +437,7 @@ void Mount::AutomataMkfs(QString lexema,QString token,int flag){
                                 mks->FormatearEXT3(auxmbr.mbr_partition[index].part_start,(auxmbr.mbr_partition[index].part_start+auxmbr.mbr_partition[index].part_size),auxmbr.mbr_partition[index].part_size,nodo->direccion);
                             }else{
                                 flag_msmkfs = 0;
-                                mks->FormatearEXT2(auxmbr.mbr_partition[index].part_start,(auxmbr.mbr_partition[index].part_start+auxmbr.mbr_partition[index].part_size),auxmbr.mbr_partition[index].part_size,nodo->direccion);
+                                mks->FormatearEXT2(auxmbr.mbr_partition[index+1].part_start,(auxmbr.mbr_partition[index+1].part_start+auxmbr.mbr_partition[index+1].part_size),auxmbr.mbr_partition[index+1].part_size,nodo->direccion);
                             }
                             fclose(disco);
                         }else {
@@ -501,6 +545,7 @@ void Mount:: AutomataLogin(QString lexema,QString token,int flag){
                                 MBR auxmbr;
                                 disco = fopen(aux->direccion.toStdString().c_str(),"rb+");
                                 if (disco != nullptr){
+                                    estadologin = 0;
                                     fseek(disco,0,SEEK_SET);
                                     fread(&auxmbr,sizeof(MBR),1,disco);
 
@@ -516,7 +561,7 @@ void Mount:: AutomataLogin(QString lexema,QString token,int flag){
                                     if (index != -1){
                                         EBR eb;
                                         if (usr == "root") flag_root = 1;
-                                        log->Loguear(index,disco,auxmbr,aux->direccion,usr,pass,userlog,0,1,eb);
+                                        log->Loguear(index+1,disco,auxmbr,aux->direccion,usr,pass,userlog,0,1,eb);
                                         estadologin = 0;
                                         flag = 0;
                                         flag_session = 1;
@@ -530,7 +575,7 @@ void Mount:: AutomataLogin(QString lexema,QString token,int flag){
                                         EBR ebr;
                                         int index2 = BuscarL(auxmbr,aux->name,ebr,aux->direccion,disco);
                                         if (index2 != -2){
-                                            log->Loguear(0,disco,auxmbr,aux->direccion,usr,pass,userlog,index2,2,ebr);
+                                            log->Loguear(0,disco,auxmbr,aux->direccion,usr,pass,userlog,index2+1,2,ebr);
 
                                         }else {
                                             cout << "Error no existe la particion logica" << endl;
@@ -662,19 +707,16 @@ void Mount::AutomataMkgrp(QString lexema, QString token,int flag){
                     else {
                         FILE *disco;
                         disco=fopen(log->path.toStdString().c_str(),"r+b");
-                        if (strlen(mk_name.toStdString().c_str()) < 10){
                             char temp[66]="\0";
                             memset(temp,0,sizeof(temp));
                             sprintf(temp,"%s%d",temp,buscar);
-                            strcat(temp,", G, ");
+                            strcat(temp,",G,");
                             strcat(temp,mk_name.toStdString().c_str());
                             strcat(temp,"\n");
-                            int res = log->CrearGrupo(disco,temp,log->path);
-                            if (res == 1) cout << "grupo creado con exito " <<endl;
+                            int res = log->CrearGrupo(disco,QString::fromLocal8Bit(temp),log->path);
+                            if (res) cout << "grupo creado con exito " <<endl;
                             else cout << " no se pudo crear el grupo" << endl;
-
-                        }else cout << "El nombre del grupo excede los 10 caracteres" <<endl;
-
+                            fclose(disco);
                     }
 
 
@@ -733,10 +775,11 @@ void Mount::AutomataMkusr(QString lexema,QString token, int flag){
                                 //QString contenido = QString::number(user) + ", U, "+grp_usr+", "+usr_usr+", "+pass_usr+"\n";
                                 char enviar[66];
                                 memset(enviar,0,sizeof(enviar));
-                                sprintf(enviar,"%d, U, %s, %s, %s\n",user,grp_usr.toStdString().c_str(),usr_usr.toStdString().c_str(),pass.toStdString().c_str());
+                                sprintf(enviar,"%d,U,%s,%s,%s\n",user,grp_usr.toStdString().c_str(),usr_usr.toStdString().c_str(),pass.toStdString().c_str());
                                 int res = log->CrearGrupo(disco,enviar,log->path);
                                 if (res == 1) cout << "Usuario creado con exito" << endl;
                                 else cout << "NO se pudo crear el usuario "<<endl;
+                                fclose(disco);
                             }
 
                         }else{
@@ -826,14 +869,15 @@ void Mount::AutomataMkdir(QString lexema, QString token, int flag){
                         char auxPath[500];
                         strcpy(auxPath,aux.c_str());
                         int coco = dir.BuscarCoA(DiscoEnUso,auxPath,log->inicioSuper,&numeracion);
-                        cout << coco << "buscar " <<endl;
+                        //cout << coco << "buscar " <<endl;
                         if (coco == 1) cout << "ya existe el directorio"<< endl;
                         else if (coco == 0){
                            // cout << "se crea car[eta" <<endl;
                             string aux = path_mkdir.toStdString();
                             char auxPath[500];
                             strcpy(auxPath,aux.c_str());
-                            int respuesta = dir.CrearCarpeta(DiscoEnUso,'F',0,log->inicioSuper,auxPath,flag_mkdir_p);
+                            int respuesta = dir.CrearCarpeta(DiscoEnUso,'F',0,log->inicioSuper,auxPath,flag_mkdir_p,path_mkdir);
+                            cout << "respuesta: " << respuesta << endl;
                             if (respuesta == 4) cout << "La direccion no existe  y no se puede crear por falta del comando P" <<endl;
                             else cout << "Se creo la carpeta con exito" <<endl;
                             fclose(DiscoEnUso);
@@ -871,6 +915,105 @@ void Mount::AutomataMkdir(QString lexema, QString token, int flag){
             flag = 0;
         }
         break;
+    }
+
+}
+
+
+void Mount::AutomataMkfile(QString lexema, QString token, int flag){
+    switch (estadomkfile) {
+    case 0:
+        estadomkfile = 1;
+        break;
+    case 1:
+        if (lexema == "path"){
+            estadomkfile = 2;
+            flag_mkfile_path = 1;
+        }else if (lexema == "r"){
+            estadomkfile = 1;
+            flag_mkfile_r = 1;
+        }else if(lexema == "size"){
+            estadomkfile = 3;
+        }else if (lexema == "cont"){
+            estadomkfile = 4;
+            flag_mkfile_cont = 1;
+        }else if (lexema == "finInstruccion"){
+            if (flag_session){
+                if (flag_mkfile_path){
+                    estadomkfile = 0;
+                    superBloque super;
+                    int numeracion = 0;
+                    FILE* DiscoEnUso = fopen(log->path.toStdString().c_str(),"rb+");
+                    fseek(DiscoEnUso,log->inicioSuper,SEEK_SET);
+                    fseek(DiscoEnUso,0,SEEK_SET);
+                    fread(&super,sizeof(superBloque),1,DiscoEnUso);
+                    QByteArray ba = mkfile_path.toLocal8Bit();
+                    char *c_str2 = ba.data();
+
+                    int buscar = dir.BuscarCoA(DiscoEnUso,c_str2,log->inicioSuper,&numeracion);
+                    if (buscar == 1) cout << "La direccion ya existe " << endl;
+                    else if (buscar == 0){
+                        QByteArray ba = mkfile_path.toLocal8Bit();
+                        char *c_str2 = ba.data();
+                        int respuesta = mf.CrearArchivo(DiscoEnUso,c_str2,'F',flag_mkfile_r,log->inicioSuper,mkfile_size,mkfile_cont,false);
+                        cout << "respuesta " << respuesta << endl;
+                        if (flag_mkfile_r == 1) {
+                            cout << "entra en Recursivo " << endl;
+                            int respuesta2 = mf.CrearArchivo(DiscoEnUso,c_str2,'F',0,log->inicioSuper,mkfile_size,mkfile_cont,true);
+                            if (respuesta2 == 4)cout << "No tiene permosisos de escritura " << endl;
+                            else if (respuesta2 == 7) cout <<"No se puede abrir el archivo cat " << endl;
+                            else cout << "archivo creado con exito" <<endl;
+
+                        }
+                        if (respuesta == 4)cout << "No tiene permosisos de escritura " << endl;
+                        else if (respuesta == 7) cout <<"No se puede abrir el archivo cat " << endl;
+                        else cout << "archivo creado con exito" <<endl;
+
+                    }
+
+
+
+                }else cout << "Parametro path obligatorio" <<endl;
+
+            }else cout << "No hay una sesion activa" << endl;
+
+        }
+        break;
+    case 2:
+        if (lexema == "palabra"){
+            mkfile_path = token;
+            estadomkfile = 1;
+        }else {
+            cout << "Se esperaba una direccion" << endl;
+            estadomkfile = 0;
+            flag = 0;
+        }
+        break;
+    case 3:
+        if (lexema == "numero"){
+            if (token.toInt() > -1){
+                estadomkfile = 1;
+                mkfile_size = token.toInt();
+            }else {
+                cout << "Error no se pueden ingresar numeros negativos " <<endl;
+                estadomkfile = 0;
+                flag = 0;
+            }
+        }else {
+            cout << "Error se esperaba un numero" <<endl;
+            estadomkfile = 0;
+            flag = 0;
+        }
+        break;
+    case 4:
+        if (lexema == "palabra"){
+            estadomkfile = 1;
+            mkfile_cont = token;
+        }else {
+            cout << "Error se esperaba una direccion" <<endl;
+            estadomkfile = 0;
+            flag = 0;
+        }
     }
 
 }

@@ -31,7 +31,10 @@ void Login::Loguear(int index,FILE *disco,MBR auxmbr,QString direccion,QString u
         fwrite(&inodo,sizeof(inodeTable),1,disco);
         fclose(disco);
         inicioSuper = auxmbr.mbr_partition[index].part_start;
-        fit = auxmbr.mbr_partition[index].part_fit;
+        cout << "inicio super del login " << inicioSuper <<endl;
+        cout << "index "<< index <<endl;
+        fit = 'F';//auxmbr.mbr_partition[index].part_fit;
+
         QString contenido = retornarContent(dic.c_str(),super.s_inode_start + sizeof(inodeTable),super.s_block_start);
         QStringList lista1 = contenido.split('\n');
         QString grupo = "";
@@ -39,10 +42,10 @@ void Login::Loguear(int index,FILE *disco,MBR auxmbr,QString direccion,QString u
         {
             QStringList lista2 = aux.split(',');
             string co = lista2.value(1).toStdString();
-            if( co == " U"){
-                string usuario = " " + usr.toStdString();
+            if( co == "U"){
+                string usuario = "" + usr.toStdString();
                 if(lista2.value(3).toStdString() == usuario){
-                    string password = " " + pass.toStdString();
+                    string password = "" + pass.toStdString();
                     if (lista2.value(4).toStdString() == password){
                         userlog.id_user = lista2.value(0).toInt();
                         grupo = lista2.value(2);
@@ -129,28 +132,31 @@ QString Login::retornarContent(QString direccion,int inicioI,int InicioB){
     QString contenido = "";
     if(disco != nullptr){
         if (discoaux != nullptr){
+            superBloque super;
             inodeTable inodo;
-            fseek(disco,inicioI,SEEK_SET);
+            fseek(disco,inicioSuper,SEEK_SET);
+            fread(&super,sizeof(superBloque),1,disco);
+            fseek(disco,super.s_inode_start + static_cast<int>(sizeof(inodeTable)),SEEK_SET);
             fread(&inodo,sizeof(inodeTable),1,disco);
             int flag = 0;
             int contador = 0;
-            while(flag == 0){
-                if (inodo.i_block[contador] != -1){
-                    char fase[64] = "";
-                    memset(fase,0,sizeof(fase));
+            //while(flag == 0){
+                for (int i =0; i <15; i++){
+                if (inodo.i_block[i] != -1){
+
                     bloqueArchivo archivo;
-                    fseek(discoaux,InicioB,SEEK_SET);
+                    fseek(discoaux,super.s_block_start,SEEK_SET);
+                    cout << "super " << super.s_block_start <<endl;
                     fread(&archivo,sizeof(bloqueArchivo),1,discoaux);
-                    for(int j = 0; j < inodo.i_block[contador]; j++){
+                    for(int j = 0; j < inodo.i_block[i]; j++){
                         fread(&archivo,sizeof(bloqueArchivo),1,discoaux);
                      }
                     QString aux(archivo.b_content);
                     contenido.append(aux);
 
-                }else flag = 1;
-                contador++;
+                }
+                //contador++;
             }
-            char aux;
 
         }else cout << "El disco no existe" << endl;
         fclose(disco);
@@ -170,11 +176,11 @@ int Login::BuscarG(QString name, int inicio){
     fseek(disco,super.s_inode_start+sizeof(inodeTable),SEEK_SET);
 
     fread(&inodo,sizeof(inodeTable),1,disco);
-    fseek(disco,super.s_inode_start+sizeof(inodeTable),SEEK_SET);
+    //fseek(disco,super.s_inode_start+sizeof(inodeTable),SEEK_SET);
     fclose(disco);
 
     QString contenido = retornarContent(path,super.s_inode_start + sizeof(inodeTable),super.s_block_start);
-    cout << contenido.toStdString() << endl;
+    //cout << contenido.toStdString() << endl;
     QStringList lista1 = contenido.split('\n');
     int grup;
     int grupo = 1;
@@ -183,8 +189,8 @@ int Login::BuscarG(QString name, int inicio){
         QStringList lista2 = aux.split(',');
         string co = lista2.value(1).toStdString();
 
-        if(co == " G"){
-            string caca = " " + name.toStdString();
+        if(co == "G"){
+            string caca = "" + name.toStdString();
             if (lista2.value(2).toStdString() == caca){
                 return -1;
             }else {
@@ -201,7 +207,7 @@ int Login::BuscarG(QString name, int inicio){
 
 }
 
-int Login::CrearGrupo(FILE *disco2,char contenido[64],QString name){
+int Login::CrearGrupo(FILE *disco,QString  contenido,QString name){
     inodeTable inodo;
     inodeTable inodoUsuario;
     bloqueArchivo archivo;
@@ -214,9 +220,6 @@ int Login::CrearGrupo(FILE *disco2,char contenido[64],QString name){
     int espacio = -1;
     int bloquelibre;
 
-    FILE*disco;
-    disco = fopen(name.toStdString().c_str(),"r+b");
-
     fseek(disco,inicioSuper,SEEK_SET);
     fread(&super,sizeof(superBloque),1,disco);
 
@@ -227,19 +230,20 @@ int Login::CrearGrupo(FILE *disco2,char contenido[64],QString name){
         if (inodo.i_block[i] != -1){
             posicion = inodo.i_block[i];
 
-        }else break;
+        }
     }
     memset(cadena_obtenida,0,sizeof(cadena_obtenida));
     fseek(disco,super.s_block_start + sizeof(bloqueArchivo)*posicion,SEEK_SET);
     fread(&archivo,sizeof(bloqueArchivo),1,disco);
 
-    usando = retornartam(strlen(archivo.b_content));
-    strcpy(cadena_obtenida,contenido);
-    tam_actual=strlen(cadena_obtenida);
-
+    usando = static_cast<int>(retornartam(strlen(archivo.b_content)));
+    strcpy(cadena_obtenida,contenido.toStdString().c_str());
+    tam_actual = static_cast<int>(strlen(cadena_obtenida));
+    cout << tam_actual <<"<="<< usando <<endl;
     if (tam_actual <= usando){
         int respuesta = gr.llenar1(disco,super,archivo,inodoUsuario,posicion,cadena_obtenida,tam_actual);
-        return respuesta;
+
+        return 1;
     }else {
        char fase1[40]="";
        char fase2[40]="";
@@ -255,10 +259,58 @@ int Login::CrearGrupo(FILE *disco2,char contenido[64],QString name){
            sprintf(aux,"%c",cadena_obtenida[registros]);
            strcat(fase2,aux);
        }
-       int respuesta = gr.llenar2(disco,super,archivo,inodoUsuario,posicion,fase2,tam_actual,inicioSuper,'F');
-       return respuesta;
+       //int respuesta = gr.llenar2(disco,super,archivo,inodoUsuario,posicion,fase2,tam_actual,inicioSuper,'F');
+       int superblock = super.s_block_start;
+       int superinodo = super.s_inode_start;
+       int bitlibe = 0;
+      fseek(disco,super.s_block_start + (sizeof(bloqueArchivo) * posicion),SEEK_SET);
+      fwrite(&archivo,sizeof(bloqueArchivo),1,disco);
+      bloqueArchivo archAux;
+      strcpy(archAux.b_content,fase2);
+      if (fit == 'F'){
+          int bitlibe2 = gr.firsFit(disco,inicioSuper);
+          if (bitlibe2 == -1) cout << " no se puede crear " <<endl;
+          else bitlibe = gr.firsFit(disco,inicioSuper);
+
+      }else if (fit == 'W'){
+
+      }else if (fit == 'B'){
+
+      }
+      cout << "inicio " << inicioSuper <<endl;
+      //bitlibe = gr.buscarBloque(disco,inicioSuper,2,'F');
+      cout << "bitlibe " << bitlibe << endl;
+      fseek(disco,super.s_block_start+ (sizeof(bloqueArchivo)*bitlibe),SEEK_SET);
+      fwrite(&archAux,sizeof(bloqueArchivo),1,disco);
+
+      fseek(disco,super.s_bm_block_start + bitlibe,SEEK_SET);
+      fputc('2',disco);
+
+      fseek(disco,super.s_inode_start + sizeof(inodeTable),SEEK_SET);
+      fread(&inodoUsuario,sizeof(inodeTable),1,disco);
+
+      inodoUsuario.i_size = inodoUsuario.i_size + tam_actual;
+      time_t t = time(nullptr);
+      tm *now = localtime(&t);
+      string dateC = to_string(now->tm_mday) + "/" + to_string((now->tm_mon+1)) + "/" + to_string((now->tm_year + 1900)) + " " + to_string(now->tm_hour) + ":" + to_string(now->tm_min);
+      strcpy(inodoUsuario.i_mtime, dateC.c_str());
+      inodoUsuario.i_block[posicion] = bitlibe;
+
+      fseek(disco,super.s_inode_start+ sizeof(inodeTable),SEEK_SET);
+      fwrite(&inodoUsuario,sizeof(inodeTable),1,disco);
+
+      int superfi = super.s_first_blo;
+      int superfree = super.s_free_block_count;
+
+      super.s_first_blo = super.s_first_blo + 1;
+      super.s_free_block_count = super.s_free_block_count- 1;
+      fseek(disco,inicioSuper,SEEK_SET);
+      fwrite(&super,sizeof(superBloque),1,disco);
+      return 1;
+       //return respuesta;
 
     }
+    return 1;
 }
 
 void Login::marcar(superBloque super,FILE *disco){
@@ -305,11 +357,11 @@ int Login::BuscarU(QString name, int inicio){
     fseek(disco,super.s_inode_start+sizeof(inodeTable),SEEK_SET);
 
     fread(&inodo,sizeof(inodeTable),1,disco);
-    fseek(disco,super.s_inode_start+sizeof(inodeTable),SEEK_SET);
-    fclose(disco);
+    //fseek(disco,super.s_inode_start+sizeof(inodeTable),SEEK_SET);
+    //fclose(disco);
 
     QString contenido = retornarContent(path,super.s_inode_start + sizeof(inodeTable),super.s_block_start);
-    cout << contenido.toStdString() << endl;
+    //cout << contenido.toStdString() << endl;
     QStringList lista1 = contenido.split('\n');
     int grup;
     int grupo = 1;
@@ -317,8 +369,8 @@ int Login::BuscarU(QString name, int inicio){
     {
         QStringList lista2 = aux.split(',');
         string co = lista2.value(1).toStdString();
-        if(co == " U"){
-            string caca = " " + name.toStdString();
+        if(co == "U"){
+            string caca = "" + name.toStdString();
             if (lista2.value(3).toStdString() == caca){
                 return -1;
             }else {

@@ -127,6 +127,7 @@ void Graficas:: GraficarMBR_EBR(QString direccion , QString destino, QString ext
             system(pathUnion.c_str());
     string abrir = "eog " + pathJpg;
     system(abrir.c_str());
+    cout << "Grafica del MBR REalizada con exito" << endl;
 
     }   else cout << "No se encuentra el disco" << endl;
 
@@ -165,7 +166,7 @@ void Graficas::GraficarDisk(QString direccion , QString destino, QString extensi
                         fprintf(graph, "<TD HEIGHT=\"200\" WIDTH=\"%f\">\n<TABLE BORDER=\"0\"  HEIGHT=\"200\" WIDTH=\"%f\" CELLBORDER=\"1\">\n<TR>\n<TD HEIGHT=\"60\" WIDTH=\"%f\">Extendida</TD>\n</TR>\n<TR>\n",porcent,porcent,porcent);
                         fseek(disco,auxmbr.mbr_partition[i].part_start,SEEK_SET);
                         EBR auxebr;
-                        while((fread(&auxebr,sizeof(EBR),1,disco)) != 0 && ftell(disco) < (auxmbr.mbr_partition[i].part_size+auxmbr.mbr_partition[i].part_start)){
+                        while((fread(&auxebr,sizeof(EBR),1,disco)) != 0 && ftell(disco) < (auxmbr.mbr_partition[i].part_size + auxmbr.mbr_partition[i].part_start)){
                                 parcial = auxebr.part_size;
                                  porcent = (double)(parcial*100)/total;
                                  if(porcent != 0){
@@ -209,8 +210,81 @@ void Graficas::GraficarDisk(QString direccion , QString destino, QString extensi
         system(comando);
         QString abrir = "eog " + destino;
         system(abrir.toStdString().c_str());
+        cout << "Grafica DISK Realizada con exito " <<endl;
     }else cout << "el disco no existe " << endl;
 
 
 
+}
+
+
+void Graficas:: Inode(QString direccion, QString destino, QString extension,int biS,int iS,int biE,int caca){
+    int numeroInode=0;
+        char  buff;
+        FILE *disco;
+        FILE *discoaux;
+        FILE *graph;
+        if(disco = fopen(direccion.toStdString().c_str(),"r")){
+            graph = fopen("grafica.dot","w");
+            fprintf(graph,"digraph G{\n");
+            discoaux = fopen(direccion.toStdString().c_str(),"r");
+
+            inodeTable inode;
+           fseek(discoaux,biS,SEEK_SET);
+            fseek(disco,iS,SEEK_SET);
+            while(ftell(discoaux) < biE){
+                buff = fgetc(discoaux);
+                fread(&inode,sizeof(inodeTable),1,disco);
+                if(buff == '1'){
+                    fprintf(graph,"subgraph inode_%d{\n",numeroInode);
+                    fprintf(graph, "nodo_%d [ shape=none,",numeroInode);
+                    fprintf(graph, "label=< <TABLE> <TR> <TD COLSPAN=\"2\"> Inodo %d </TD></TR>\n",numeroInode);
+                    fprintf(graph, "<TR> <TD> i_uid </TD> <TD> %d </TD></TR>\n",inode.i_uid);
+                    fprintf(graph, "<TR> <TD> i_gid </TD> <TD> %d </TD></TR>\n",inode.i_gid);
+                    fprintf(graph, "<TR> <TD> i_size </TD> <TD> %d </TD></TR>\n",inode.i_size);
+                    fprintf(graph, "<TR> <TD> i_gid </TD> <TD> %d </TD></TR>\n",inode.i_gid);
+                    string s5;
+                    stringstream ss5;
+                    ss5 << inode.i_atime;
+                    ss5 >> s5;
+                    fprintf(graph, "<TR> <TD> i_atime </TD> <TD> %s </TD></TR>\n",inode.i_atime);
+                    string s1;
+                    stringstream ss1;
+                    ss1 << inode.i_ctime;
+                    ss1 >> s1;
+                    fprintf(graph, "<TR> <TD> i_ctime </TD> <TD> %s </TD></TR>\n",inode.i_ctime);
+                    //tm = localtime(&inode.i_mtime);
+                    string s2;
+                    stringstream ss2;
+                    ss2 << inode.i_mtime;
+                    ss2 >> s2;
+                    fprintf(graph, "<TR> <TD> i_mtime </TD> <TD> %s </TD></TR>\n",inode.i_mtime);
+                    for(int i = 0; i < 15;i++){
+                        fprintf(graph, "<TR> <TD> i_block_%d </TD> <TD> %d </TD></TR>\n",i,inode.i_block[i]);
+                    }
+                    fprintf(graph, "<TR> <TD> i_type </TD> <TD> %c </TD></TR>\n",inode.i_type);
+                    fprintf(graph, "<TR> <TD> i_perm </TD> <TD> %d </TD></TR>\n",inode.i_perm);
+                    fprintf(graph, "</TABLE>>]\n");
+                    fprintf(graph,"}\n");
+                }
+
+                numeroInode++;
+            }
+
+            fclose(disco);
+            fprintf(graph,"\n}");
+            fclose(graph);
+            char comando[400];
+            strcpy(comando,"dot -T");
+            strcat(comando,extension.toStdString().c_str());
+            strcat(comando," grafica.dot -o ");
+            strcat(comando,destino.toStdString().c_str());
+            system(comando);
+            fclose(discoaux);
+            cout << "Grafica de Inodos Realizada con exito" << endl;
+            cout << endl;
+
+            }else{
+                printf("Error el disco no existe\n");
+            }
 }

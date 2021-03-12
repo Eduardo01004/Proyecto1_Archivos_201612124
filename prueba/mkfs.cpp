@@ -95,6 +95,9 @@ void Mkfs::FormatearEXT2(int inicio,int fin,int tamano,QString direccion){
             cout << "No existe el disco" << endl;
             return;
         }
+        char buffer = '0';
+          char buffer2 = '1';
+          char buffer3 = '2';
     int numero_estructuras = Calcular_estructuras( tamano,"ext2");
     int bitmap_inodo = inicio + sizeof(superBloque);
     int bitmap_bloques = inicio + sizeof(superBloque) + numero_estructuras;
@@ -106,6 +109,7 @@ void Mkfs::FormatearEXT2(int inicio,int fin,int tamano,QString direccion){
     super.s_blocks_count = 3 * numero_estructuras;
     super.s_free_inodes_count = numero_estructuras -2;
     super.s_free_block_count = (3 * numero_estructuras) - 2;
+    cout << "count " << super.s_free_block_count << endl;
     time_t t = time(nullptr);
     tm *now = localtime(&t);
     string dateC = to_string(now->tm_mday) + "/" + to_string((now->tm_mon+1)) + "/" + to_string((now->tm_year + 1900)) + " " + to_string(now->tm_hour) + ":" + to_string(now->tm_min);
@@ -117,46 +121,49 @@ void Mkfs::FormatearEXT2(int inicio,int fin,int tamano,QString direccion){
     super.s_block_size = sizeof(bloqueArchivo);
     super.s_first_ino = 2;
     super.s_first_blo = 2;
-    super.s_bm_inode_start = bitmap_inodo;
+    super.s_bm_inode_start = inicio + sizeof(superBloque);
     super.s_bm_block_start = bitmap_bloques;
-    super.s_inode_start = bitmap_bloques + (3* numero_estructuras);
-    super.s_block_start = bitmap_bloques + (3* numero_estructuras) + (sizeof(inodeTable) * numero_estructuras);
+    super.s_inode_start = inicio + sizeof(superBloque) + numero_estructuras + (3* numero_estructuras);
+    super.s_block_start = inicio + sizeof(superBloque) + numero_estructuras + (3* numero_estructuras) + (sizeof(inodeTable) * numero_estructuras);
+    cout << "super 2" << super.s_block_start << endl;
 
-    inodo.i_uid = 1;
-    inodo.i_gid = 1;
-    inodo.i_size = 0;
-    strcpy(inodo.i_atime, dateC.c_str());
-    strcpy(inodo.i_ctime, dateC.c_str());
-    strcpy(inodo.i_mtime, dateC.c_str());
-    inodo.i_block[0] = 1;
 
-    //----------------------------------------
-    for(int i = 1 ; i < 15; i++){
-        inodo.i_block[i] = -1;
-    }
-    inodo.i_type = '0';
-    inodo.i_perm = 664;
 
     fseek(disco,inicio,SEEK_SET);
     fwrite(&super,sizeof(superBloque),1,disco);
 
     for(int i = 0; i < numero_estructuras; i++){
         fseek(disco,super.s_bm_inode_start + i ,SEEK_SET);
-        fwrite("0",1,1,disco);
+        fwrite(&buffer,1,1,disco);
     }
-    for(int i = 0; i < 2; i++){
+    /*for(int i = 0; i < 2; i++){
         fseek(disco,super.s_bm_inode_start + (i*sizeof(char)),SEEK_SET);
-        fwrite("1",1,1,disco);
-    }
+        fwrite(&buffer2,1,1,disco);
+    }*/
+    fseek(disco,super.s_bm_inode_start,SEEK_SET);
+    fwrite(&buffer2,sizeof(char),1,disco);
+    fwrite(&buffer2,sizeof(char),1,disco);
+
     for(int i = 0; i < (numero_estructuras*3); i++){
-        fseek(disco,super.s_bm_block_start+(i*sizeof(char)),SEEK_SET);
-        fwrite("0",1,1,disco);
+        fseek(disco,super.s_bm_block_start+(i),SEEK_SET);
+        fwrite(&buffer,sizeof(char),1,disco);
     }
     fseek(disco,super.s_bm_block_start,SEEK_SET);
-    fwrite("1",1,1,disco);
-    fwrite("2",1,1,disco);
+    fwrite(&buffer2,sizeof(char),1,disco);
+    fwrite(&buffer3,sizeof(char),1,disco);
     //------------------------------------------------------
-
+    inodo.i_uid = 1;
+    inodo.i_gid = 1;
+    inodo.i_size = 0;
+    strcpy(inodo.i_atime, dateC.c_str());
+    strcpy(inodo.i_ctime, dateC.c_str());
+    strcpy(inodo.i_mtime, dateC.c_str());
+    inodo.i_block[0] = 0;
+    for(int i = 1 ; i < 15; i++){
+        inodo.i_block[i] = -1;
+    }
+    inodo.i_type = '0';
+    inodo.i_perm = 664;
     fseek(disco,super.s_inode_start,SEEK_SET);
     fwrite(&inodo,sizeof(inodeTable),1,disco);
 
@@ -177,7 +184,7 @@ void Mkfs::FormatearEXT2(int inicio,int fin,int tamano,QString direccion){
 
     inodo.i_uid = 1;
     inodo.i_gid = 1;
-    inodo.i_size = 0;//
+    inodo.i_size = 27;//
     strcpy(inodo.i_atime, dateC.c_str());
     strcpy(inodo.i_ctime, dateC.c_str());
     strcpy(inodo.i_mtime, dateC.c_str());
@@ -207,8 +214,9 @@ void Mkfs::FormatearEXT2(int inicio,int fin,int tamano,QString direccion){
             caracter[i]=aux[0];
         }
     }
-
-    strcpy(archivo.b_content,caracter);
+     memset(archivo.b_content,0,sizeof(archivo.b_content));
+    //strcpy(archivo.b_content,caracter);
+     strcpy(archivo.b_content,"1,G,root\n1,U,root,root,123\n");
     fseek(disco,super.s_block_start+sizeof(bloqueCarpetas),SEEK_SET);
     fwrite(&archivo,sizeof(bloqueArchivo),1,disco);
     cout << "Disco Formateado en  EXT 2" << endl;
@@ -266,25 +274,27 @@ void Mkfs::FormatearEXT3(int inicio,int fin,int tamano,QString direccion){
     }
     inodo.i_type = '0';
     inodo.i_perm = 664;
-
+    char buffer = '0';
+      char buffer2 = '1';
+      char buffer3 = '2';
     fseek(disco,inicio,SEEK_SET);
     fwrite(&super,sizeof(superBloque),1,disco);
 
     for(int i = 0; i < numero_estructuras; i++){
         fseek(disco,super.s_bm_inode_start + i ,SEEK_SET);
-        fwrite("0",1,1,disco);
+        fwrite(&buffer,1,1,disco);
     }
     for(int i = 0; i < 2; i++){
         fseek(disco,super.s_bm_inode_start + (i*sizeof(char)),SEEK_SET);
-        fwrite("1",1,1,disco);
+        fwrite(&buffer2,1,1,disco);
     }
     for(int i = 0; i < (numero_estructuras*3); i++){
         fseek(disco,super.s_bm_block_start+(i*sizeof(char)),SEEK_SET);
-        fwrite("0",1,1,disco);
+        fwrite(&buffer,1,1,disco);
     }
     fseek(disco,super.s_bm_block_start,SEEK_SET);
-    fwrite("1",1,1,disco);
-    fwrite("2",1,1,disco);
+    fwrite(&buffer2,1,1,disco);
+    fwrite(&buffer3,1,1,disco);
     //------------------------------------------------------
 
     fseek(disco,super.s_inode_start,SEEK_SET);

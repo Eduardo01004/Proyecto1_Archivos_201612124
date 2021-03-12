@@ -186,6 +186,8 @@ const char* palabrasReservadas(char palabra[400]){
         return "mkdir";
     }else if(strcmp(palabra, "-p") == 0 || strcmp(palabra, "-P") == 0 ){
         return "p";
+    }else if(strcmp(palabra, "-r") == 0 || strcmp(palabra, "-R") == 0 ){
+        return "r";
     }else if(strcmp(palabra, "mkfile") == 0 || strcmp(palabra, "Mkfile") == 0 ){
         return "mkfile";
     }else if(strcmp(palabra, "-cont=") == 0 || strcmp(palabra, "-Cont=") == 0 ){
