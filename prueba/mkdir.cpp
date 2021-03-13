@@ -47,10 +47,9 @@ int Mkdir::BuscarCoA(FILE *DiscoEnUSo,char *path, int inicio,int *numeracion){
         fread(&InodoUso,sizeof(inodeTable),1,DiscoEnUSo);
         bool flag = false;
         for (int j = 0; j < 12; j++){
-
             if (InodoUso.i_block[j] != -1){
-                fseek(DiscoEnUSo,inicio,SEEK_SET);
-                fread(&sb,sizeof(superBloque),1,DiscoEnUSo);
+                //fseek(DiscoEnUSo,inicio,SEEK_SET);
+                //fread(&sb,sizeof(superBloque),1,DiscoEnUSo);
                 fseek(DiscoEnUSo,sb.s_block_start + (sizeof(bloqueCarpetas) * InodoUso.i_block[j]),SEEK_SET);
                 fread(&BC,sizeof(bloqueCarpetas),1,DiscoEnUSo);
                 for (int y = 0; y < 4; y++){
@@ -66,8 +65,8 @@ int Mkdir::BuscarCoA(FILE *DiscoEnUSo,char *path, int inicio,int *numeracion){
                         *numeracion = BC.b_content[y].b_inodo;
                         return 1;
                     }else if ((i != contador - 1)&&(strcasecmp(BC.b_content[y].b_name,lista.at(i).c_str()) == 0)) {
-                        fseek(DiscoEnUSo,inicio,SEEK_SET);
-                        fread(&sb,sizeof(superBloque),1,DiscoEnUSo);
+                        //fseek(DiscoEnUSo,inicio,SEEK_SET);
+                        //fread(&sb,sizeof(superBloque),1,DiscoEnUSo);
                         LugarInododo = sb.s_inode_start + (sizeof(inodeTable)*BC.b_content[y].b_inodo);
                         flag = true;
                         break;
@@ -557,12 +556,12 @@ int Mkdir::firsFit(FILE *disco,int inicio){
     bool bandera = false;
     fseek(disco,inicio,SEEK_SET);
     fread(&super,sizeof(superBloque),1,disco);
-
+    char bitTemporal;
     for (int i = 0; i < super.s_blocks_count; i++){
         fseek(disco,super.s_bm_block_start + i,SEEK_SET);
         char byte;
-        fread(&byte,sizeof (char),1,disco);
-        if (byte == '0'){
+        bitTemporal = fgetc(disco);
+        if (bitTemporal == '0'){
             bandera = true;
             retorno = i;
             break;
@@ -576,17 +575,20 @@ int Mkdir::firsFit(FILE *disco,int inicio){
 
 }
 
+
 int Mkdir::firsFitInodo(FILE *disco,int inicio){
     superBloque super;
     int retorno = -1;
     bool bandera = false;
     fseek(disco,inicio,SEEK_SET);
     fread(&super,sizeof(superBloque),1,disco);
-    char byte;
+    char bitTemporal;
     for (int i = 0; i < super.s_inodes_count; i++){
         fseek(disco,super.s_bm_inode_start + i,SEEK_SET);
-        fread(&byte,sizeof (char),1,disco);
-        if (byte == '0'){
+        //char byte;
+        //fread(&byte,sizeof (char),1,disco);
+        bitTemporal = fgetc(disco);
+        if (bitTemporal == '0'){
             bandera = true;
             retorno = i;
             break;

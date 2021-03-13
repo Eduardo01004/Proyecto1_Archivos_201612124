@@ -19,6 +19,7 @@ public:
     void  GraficarMBR_EBR(QString direccion , QString destino, QString extension);
     void GraficarDisk(QString direccion , QString destino, QString extension);
     void Inode(QString direccion, QString destino, QString extension,int bm_inodeS,int s_inodecount,int inodestart,int inodesize);
+    void Bloques(QString direccion, QString destino, QString extension,int biS,int iS,int biE,int start_super);
 };
 
 #endif // GRAFICAS_H

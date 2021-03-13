@@ -87,7 +87,7 @@ int Mkgrp::firsFit(FILE *disco,int inicio){
     for (int i = 0; i < super.s_blocks_count; i++){
         fseek(disco,super.s_bm_block_start + i,SEEK_SET);
         char byte;
-        bitTemporal = static_cast<int>(fgetc(disco));
+        bitTemporal = fgetc(disco);
         if (bitTemporal == '0'){
             bandera = true;
             retorno = i;
@@ -113,10 +113,11 @@ int Mkgrp::firsFitInodo(FILE *disco,int inicio){
         fseek(disco,super.s_bm_inode_start + i,SEEK_SET);
         //char byte;
         //fread(&byte,sizeof (char),1,disco);
-        bitTemporal = static_cast<int>(fgetc(disco));
+        bitTemporal = fgetc(disco);
         if (bitTemporal == '0'){
             bandera = true;
             retorno = i;
+            break;
         }
     }
     if (bandera == true){

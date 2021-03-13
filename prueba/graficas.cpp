@@ -288,3 +288,67 @@ void Graficas:: Inode(QString direccion, QString destino, QString extension,int 
                 printf("Error el disco no existe\n");
             }
 }
+
+
+void Graficas:: Bloques(QString direccion, QString destino, QString extension,int biS,int iS,int biE,int start_super){
+    int numerobloque = 0;
+    char  buff;
+    FILE *disco;
+    FILE *discoaux;
+    FILE *graph;
+    if(disco = fopen(direccion.toStdString().c_str(),"r")){
+        graph = fopen("grafica.dot","w");
+        fprintf(graph,"digraph G{\n");
+        discoaux = fopen(direccion.toStdString().c_str(),"r");
+        superBloque super;
+        bloqueArchivo archivo;
+        bloqueCarpetas carpeta;
+        fseek(disco,start_super,SEEK_SET);
+        fread(&super,sizeof(superBloque),1,disco);
+
+        fseek(discoaux,super.s_bm_block_start,SEEK_SET);
+        fseek(disco,super.s_block_start,SEEK_SET);
+        while(ftell(discoaux) < biE){
+            buff = fgetc(discoaux);
+            fseek(disco,super.s_block_start+(sizeof(bloqueArchivo)*numerobloque),SEEK_SET);
+            if(buff == '1'){
+                fread(&carpeta,sizeof(bloqueCarpetas),1,disco);
+                fprintf(graph,"subgraph inode_%d{\n",numerobloque);
+                fprintf(graph, "nodo_%d [ shape=none,",numerobloque);
+                fprintf(graph, "label=< <TABLE> <TR> <TD COLSPAN=\"2\"> Bloque de Carpeta %d </TD></TR>\n",numerobloque);
+                fprintf(graph, "<TR> <TD> b_name </TD> <TD> b_inode </TD></TR>\n");
+                for(int i = 0; i < 4; i++){
+                    fprintf(graph, "<TR> <TD> %s </TD> <TD> %d </TD></TR>\n",carpeta.b_content[i].b_name,carpeta.b_content[i].b_inodo);
+                }
+                fprintf(graph, "</TABLE>>]\n");
+                fprintf(graph,"}\n");
+            }else if(buff == '2'){
+                fread(&archivo,sizeof(bloqueCarpetas),1,disco);
+                fprintf(graph,"subgraph inode_%d{\n",numerobloque);
+                fprintf(graph, "nodo_%d [ shape=none,",numerobloque);
+                fprintf(graph, "label=< <TABLE> <TR> <TD COLSPAN=\"2\"> Bloque de Archivo %d </TD></TR>\n",numerobloque);
+                fprintf(graph, "<TR> <TD COLSPAN=\"2\"> %s </TD></TR>\n",archivo.b_content);
+                fprintf(graph, "</TABLE>>]\n");
+                fprintf(graph,"}\n");
+            }
+
+            numerobloque++;
+        }
+
+        fclose(disco);
+        fprintf(graph,"\n}");
+        fclose(graph);
+        char comando[400];
+        strcpy(comando,"dot -T");
+        strcat(comando,extension.toStdString().c_str());
+        strcat(comando," grafica.dot -o ");
+        strcat(comando,destino.toStdString().c_str());
+        system(comando);
+        cout << "Grafica de Bloques realizada con Exito" << endl;
+        cout << endl;
+
+    }else{
+        printf("Error el disco no existe\n");
+    }
+
+}
