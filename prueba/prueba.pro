@@ -26,7 +26,11 @@ SOURCES += \
     mkgrp.cpp \
     mkusr.cpp \
     mkdir.cpp \
-    mkfile.cpp
+    mkfile.cpp \
+    journal.cpp \
+    perdida.cpp \
+    nodoordenado.cpp \
+    listaordenada.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -53,4 +57,8 @@ HEADERS += \
     mkgrp.h \
     mkusr.h \
     mkdir.h \
-    mkfile.h
+    mkfile.h \
+    journal.h \
+    perdida.h \
+    nodoordenado.h \
+    listaordenada.h

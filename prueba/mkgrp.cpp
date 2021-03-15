@@ -13,16 +13,16 @@ void Mkgrp::BuscarGrupo(QString name,int iniciosuper){
 int  Mkgrp::llenar1(FILE *disco,superBloque super,bloqueArchivo archivo,inodeTable inodouser,int posicion, char cadena[400],int tam_actual){
     int res = 1;
     strcat(archivo.b_content,cadena);
-    fseek(disco,super.s_block_start+ (static_cast<int>(sizeof(bloqueArchivo)*posicion)),SEEK_SET);
+    fseek(disco,super.s_block_start+(sizeof(bloqueArchivo)*posicion),SEEK_SET);
     fwrite(&archivo,sizeof(bloqueArchivo),1,disco);
-    fseek(disco,super.s_inode_start + static_cast<int>(sizeof(inodeTable)),SEEK_SET);
+    fseek(disco,super.s_inode_start + sizeof(inodeTable),SEEK_SET);
     fread(&inodouser,sizeof(inodeTable),1,disco);
     inodouser.i_size = inodouser.i_size + tam_actual;
     time_t t = time(nullptr);
     tm *now = localtime(&t);
     string dateC = to_string(now->tm_mday) + "/" + to_string((now->tm_mon+1)) + "/" + to_string((now->tm_year + 1900)) + " " + to_string(now->tm_hour) + ":" + to_string(now->tm_min);
     strcpy(inodouser.i_atime, dateC.c_str());
-    fseek(disco,super.s_inode_start + static_cast<int>(sizeof(inodeTable)),SEEK_SET);
+    fseek(disco,super.s_inode_start + sizeof(inodeTable),SEEK_SET);
     fwrite(&inodouser,sizeof(inodeTable),1,disco);
     return res;
 }
@@ -45,9 +45,6 @@ int Mkgrp::llenar2(FILE *disco,superBloque super,bloqueArchivo archivo,inodeTabl
    }else if (fit == 'B'){
 
    }*/
-   cout << "inicio " << iniciosuper <<endl;
-   //bitlibe = buscarBloque(disco,iniciosuper,'2','F');
-   cout << "bitlibe " << bitlibe << endl;
    fseek(disco,super.s_block_start+ (sizeof(bloqueArchivo)*bitlibe),SEEK_SET);
    fwrite(&archAux,sizeof(bloqueArchivo),1,disco);
 
@@ -85,7 +82,7 @@ int Mkgrp::firsFit(FILE *disco,int inicio){
     fread(&super,sizeof(superBloque),1,disco);
     char bitTemporal;
     for (int i = 0; i < super.s_blocks_count; i++){
-        fseek(disco,super.s_bm_block_start + i,SEEK_SET);
+        fseek(disco,super.s_bm_block_start + (i*sizeof(char)),SEEK_SET);
         char byte;
         bitTemporal = fgetc(disco);
         if (bitTemporal == '0'){

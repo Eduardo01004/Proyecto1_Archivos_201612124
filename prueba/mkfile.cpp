@@ -794,9 +794,9 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
         strcpy(LarutaDelaCarpeta,dirname(copiaPath));
         strcpy(NombreCarpeta,basename(copiaPath2));
         const char s[2] = "\/";
-        char *token;
-        token= (char*)malloc(sizeof(char));
-        token = strtok(pampa, s);
+        char *token = strtok(pampa,"/");;
+        /*token= (char*)malloc(sizeof(char));
+        token = strtok(pampa, s);*/
         int contador=0;
         int contador2=0;
         int iblock =0;
@@ -833,7 +833,7 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
             llenador[size] = '\0';
             printf("%sfofo\n", llenador);
             Indicadorcont = 1;
-        }
+        }else cout << "cont esta vacio o no viene " <<endl;
 
         fseek(DiscoEnUso,inicio_particion,SEEK_SET);
         fread(&sb,sizeof(superBloque),1,DiscoEnUso);
@@ -860,12 +860,10 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                 }
             }
             if(libre == 1){
-
                     char auxbituno = '2';
                     int bitLibre = 0;
                     int bitlibre2 = 0;
                     int a =0;
-                    //bitLibre = buscarPrimerBloque(DiscoEnUso,inicio_particion,1,fit);
                     if (fit == 'F'){
                         int bitlibe2 = dirm.firsFitInodo(DiscoEnUso,inicio_particion);
                         if (bitlibe2 == -1) cout << " no se puede crear1 " <<endl;
@@ -913,10 +911,8 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                             aux = (double)size/64;
                             cantidadBloques = (int)ceil(aux);
                             bloqueArchivo nBA;
-
                             for(x = 0; x < cantidadBloques; x++){
                                 char auxbit = '2';
-                                //int bloqueActual = buscarPrimerBloque(DiscoEnUso,inicio_particion,2,fit);
                                 int bloqueActual;
                                 if (fit == 'F'){
                                     int bitlibe2 = dirm.firsFit(DiscoEnUso,inicio_particion);
@@ -930,20 +926,9 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                                 fseek(DiscoEnUso,sb.s_bm_block_start+(sizeof(char)*bloqueActual),SEEK_SET);
                                 fwrite(&auxbit,sizeof(char),1,DiscoEnUso);
                                 memset(nBA.b_content,0,sizeof(nBA.b_content));
-                                if(caracteres > 64){
-                                    for(index = 0; index < 64; index++){
-                                        if(Indicadorcont == 0){
-                                            nBA.b_content[index] = charNum + '0';
-                                            charNum++;
-                                            if(charNum == 10){
-                                                charNum = 0;
-                                            }
-                                        }else if(Indicadorcont == 1){
-                                            nBA.b_content[index] = llenador[conIndex];
-                                            conIndex ++;
-                                        }
-                                    }
 
+                                if(caracteres > 63){
+                                    Caracteres(caracteres,index,Indicadorcont,nBA,charNum,llenador,conIndex);
                                     fseek(DiscoEnUso,sb.s_inode_start + (sizeof(inodeTable)*LugarInododo),SEEK_SET);
                                     fread(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
                                     InodoUso2.i_block[x] = bloqueActual;
@@ -952,21 +937,9 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                                     fwrite(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
                                     fseek(DiscoEnUso,sb.s_block_start+(sizeof(bloqueArchivo)*bloqueActual),SEEK_SET);
                                     fwrite(&nBA,sizeof(bloqueArchivo),1,DiscoEnUso);
-                                    caracteres = caracteres - 64;
+                                    caracteres = caracteres - 63;
                                 }else{
-
-                                    for(index = 0; index < caracteres; index++){
-                                        if(Indicadorcont == 0){
-                                            nBA.b_content[index] = charNum + '0';
-                                            charNum++;
-                                            if(charNum == 10){
-                                                charNum = 0;
-                                            }
-                                        }else if(Indicadorcont == 1){
-                                            nBA.b_content[index] = llenador[conIndex];
-                                            conIndex ++;
-                                        }
-                                    }
+                                Caracteres(caracteres,index,Indicadorcont,nBA,charNum,llenador,conIndex);
                                     fseek(DiscoEnUso,sb.s_inode_start + (sizeof(inodeTable)*LugarInododo),SEEK_SET);
                                     fread(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
                                     InodoUso2.i_block[x] = bloqueActual;
@@ -975,11 +948,8 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                                     fwrite(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
                                     fseek(DiscoEnUso,sb.s_block_start+(bloqueActual * sizeof(bloqueArchivo)),SEEK_SET);
                                     fwrite(&nBA,sizeof(bloqueArchivo),1,DiscoEnUso);
-
                                 }
-
                             }
-
                             fseek(DiscoEnUso,inicio_particion,SEEK_SET);
                             fread(&sb,sizeof(superBloque),1,DiscoEnUso);
                             sb.s_free_block_count = sb.s_free_block_count - cantidadBloques;
@@ -1001,7 +971,6 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                 int bitlibre2 = 0;
                 int segui = 0;
                 int asuper = 0;
-                //bitlibre2 = buscarPrimerBloque(DiscoEnUso,inicio_particion,2,fit);
                 if (fit == 'F'){
                     int bitlibe2 = dirm.firsFit(DiscoEnUso,inicio_particion);
                     if (bitlibe2 == -1) cout << " no se puede crear2 " <<endl;
@@ -1025,7 +994,6 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                     fwrite(&InodoUso,sizeof(inodeTable),1,DiscoEnUso);
                     fseek(DiscoEnUso,sb.s_bm_block_start + (bitlibre2*sizeof(char)),SEEK_SET);
                     fwrite(&auxbituno,sizeof(char),1,DiscoEnUso);
-                    //bitLibre = buscarPrimerBloque(DiscoEnUso,inicio_particion,1,fit);
                     if (fit == 'F'){
                         int bitlibe2 = dirm.firsFitInodo(DiscoEnUso,inicio_particion);
                         if (bitlibe2 == -1) cout << " no se puede crear1 " <<endl;
@@ -1079,10 +1047,8 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                             aux = (double)size/64;
                             cantidadBloques = (int)ceil(aux);
                             bloqueArchivo nBA;
-
                             for(x = 0; x < cantidadBloques; x++){
                                 char auxbit = '2';
-                                //int bloqueActual = buscarPrimerBloque(DiscoEnUso,inicio_particion,2,fit);
                                 int bloqueActual;
                                 if (fit == 'F'){
                                     int bitlibe2 = dirm.firsFit(DiscoEnUso,inicio_particion);
@@ -1096,19 +1062,8 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                                 fseek(DiscoEnUso,sb.s_bm_block_start+(sizeof(char)*bloqueActual),SEEK_SET);
                                 fwrite(&auxbit,sizeof(char),1,DiscoEnUso);
                                 memset(nBA.b_content,0,sizeof(nBA.b_content));
-                                if(caracteres > 64){
-                                    for(index = 0; index < 64; index++){
-                                        if(Indicadorcont == 0){
-                                            nBA.b_content[index] = charNum + '0';
-                                            charNum++;
-                                            if(charNum == 10){
-                                                charNum = 0;
-                                            }
-                                        }else if(Indicadorcont == 1){
-                                            nBA.b_content[index] = llenador[conIndex];
-                                            conIndex ++;
-                                        }
-                                    }
+                                if(caracteres > 63){
+                                    Caracteres(caracteres,index,Indicadorcont,nBA,charNum,llenador,conIndex);
 
                                     fseek(DiscoEnUso,sb.s_inode_start + (sizeof(inodeTable)*LugarInododo),SEEK_SET);
                                     fread(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
@@ -1118,21 +1073,9 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                                     fwrite(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
                                     fseek(DiscoEnUso,sb.s_block_start+(sizeof(bloqueArchivo)*bloqueActual),SEEK_SET);
                                     fwrite(&nBA,sizeof(bloqueArchivo),1,DiscoEnUso);
-                                    caracteres = caracteres - 64;
+                                    caracteres = caracteres - 63;
                                 }else{
-
-                                    for(index = 0; index < caracteres; index++){
-                                        if(Indicadorcont == 0){
-                                            nBA.b_content[index] = charNum + '0';
-                                            charNum++;
-                                            if(charNum == 10){
-                                                charNum = 0;
-                                            }
-                                        }else if(Indicadorcont == 1){
-                                            nBA.b_content[index] = llenador[conIndex];
-                                            conIndex ++;
-                                        }
-                                    }
+                                    Caracteres(caracteres,index,Indicadorcont,nBA,charNum,llenador,conIndex);
                                     fseek(DiscoEnUso,sb.s_inode_start + (sizeof(inodeTable)*LugarInododo),SEEK_SET);
                                     fread(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
                                     InodoUso2.i_block[x] = bloqueActual;
@@ -1160,8 +1103,8 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
             }
                 strcpy(Unionpath,copiaPath2);
                 return 6;
-
-        }else if (contador >1){
+        }
+        else if (contador >1){
             int SaberExiste = dirm.BuscarCoA(DiscoEnUso,LarutaDelaCarpeta,inicio_particion,&LugarInododo);
             if(SaberExiste == 0){
                 if(indicadorp == 0){
@@ -1219,7 +1162,6 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                         int bitLibre = 0;
                         int bitlibre2 = 0;
                         int a =0;
-                        //bitLibre = buscarPrimerBloque(DiscoEnUso,inicio_particion,1,fit);
                         if (fit == 'F'){
                             int bitlibe2 = dirm.firsFitInodo(DiscoEnUso,inicio_particion);
                             if (bitlibe2 == -1) cout << " no se puede crear1 " <<endl;
@@ -1270,7 +1212,6 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
 
                                 for(x = 0; x < cantidadBloques; x++){
                                     char auxbit = '2';
-                                    //int bloqueActual = buscarPrimerBloque(DiscoEnUso,inicio_particion,2,fit);
                                     int bloqueActual;
                                     if (fit == 'F'){
                                         int bitlibe2 = dirm.firsFit(DiscoEnUso,inicio_particion);
@@ -1284,20 +1225,8 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                                     fseek(DiscoEnUso,sb.s_bm_block_start+(sizeof(char)*bloqueActual),SEEK_SET);
                                     fwrite(&auxbit,sizeof(char),1,DiscoEnUso);
                                     memset(nBA.b_content,0,sizeof(nBA.b_content));
-                                    if(caracteres > 64){
-                                        for(index = 0; index < 64; index++){
-                                            if(Indicadorcont == 0){
-                                                nBA.b_content[index] = charNum + '0';
-                                                charNum++;
-                                                if(charNum == 10){
-                                                    charNum = 0;
-                                                }
-                                            }else if(Indicadorcont == 1){
-                                                nBA.b_content[index] = llenador[conIndex];
-                                                conIndex ++;
-                                            }
-                                        }
-
+                                    if(caracteres > 63){
+                                        Caracteres(caracteres,index,Indicadorcont,nBA,charNum,llenador,conIndex);
                                         fseek(DiscoEnUso,sb.s_inode_start + (sizeof(inodeTable)*LugarInododo),SEEK_SET);
                                         fread(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
                                         InodoUso2.i_block[x] = bloqueActual;
@@ -1306,21 +1235,9 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                                         fwrite(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
                                         fseek(DiscoEnUso,sb.s_block_start+(sizeof(bloqueArchivo)*bloqueActual),SEEK_SET);
                                         fwrite(&nBA,sizeof(bloqueArchivo),1,DiscoEnUso);
-                                        caracteres = caracteres - 64;
+                                        caracteres = caracteres - 63;
                                     }else{
-
-                                        for(index = 0; index < caracteres; index++){
-                                            if(Indicadorcont == 0){
-                                                nBA.b_content[index] = charNum + '0';
-                                                charNum++;
-                                                if(charNum == 10){
-                                                    charNum = 0;
-                                                }
-                                            }else if(Indicadorcont == 1){
-                                                nBA.b_content[index] = llenador[conIndex];
-                                                conIndex ++;
-                                            }
-                                        }
+                                        Caracteres(caracteres,index,Indicadorcont,nBA,charNum,llenador,conIndex);
                                         fseek(DiscoEnUso,sb.s_inode_start + (sizeof(inodeTable)*LugarInododo),SEEK_SET);
                                         fread(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
                                         InodoUso2.i_block[x] = bloqueActual;
@@ -1353,7 +1270,6 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                     int bitlibre2 = 0;
                     int segui = 0;
                     int a = 0;
-                    //bitlibre2 = buscarPrimerBloque(DiscoEnUso,inicio_particion,2,fit);
                     if (fit == 'F'){
                         int bitlibe2 = dirm.firsFit(DiscoEnUso,inicio_particion);
                         if (bitlibe2 == -1) cout << " no se puede crear2 " <<endl;
@@ -1376,7 +1292,6 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                         fwrite(&InodoUso,sizeof(inodeTable),1,DiscoEnUso);
                         fseek(DiscoEnUso,sb.s_bm_block_start + (bitlibre2*sizeof(char)),SEEK_SET);
                         fwrite(&bituno,sizeof(char),1,DiscoEnUso);
-                        //bitLibre = buscarPrimerBloque(DiscoEnUso,inicio_particion,1,fit);
                         if (fit == 'F'){
                             int bitlibe2 = dirm.firsFitInodo(DiscoEnUso,inicio_particion);
                             if (bitlibe2 == -1) cout << " no se puede crear1 " <<endl;
@@ -1435,7 +1350,6 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
 
                                 for(x = 0; x < cantidadBloques; x++){
                                     char auxbit = '2';
-                                    //int bloqueActual = buscarPrimerBloque(DiscoEnUso,inicio_particion,2,fit);
                                     int bloqueActual;
                                     if (fit == 'F'){
                                         int bitlibe2 = dirm.firsFit(DiscoEnUso,inicio_particion);
@@ -1449,20 +1363,8 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                                     fseek(DiscoEnUso,sb.s_bm_block_start+(sizeof(char)*bloqueActual),SEEK_SET);
                                     fwrite(&auxbit,sizeof(char),1,DiscoEnUso);
                                     memset(nBA.b_content,0,sizeof(nBA.b_content));
-                                    if(caracteres > 64){
-                                        for(index = 0; index < 64; index++){
-                                            if(Indicadorcont == 0){
-                                                nBA.b_content[index] = charNum + '0';
-                                                charNum++;
-                                                if(charNum == 10){
-                                                    charNum = 0;
-                                                }
-                                            }else if(Indicadorcont == 1){
-                                                nBA.b_content[index] = llenador[conIndex];
-                                                conIndex ++;
-                                            }
-                                        }
-
+                                    if(caracteres > 63){
+                                        Caracteres(caracteres,index,Indicadorcont,nBA,charNum,llenador,conIndex);
                                         fseek(DiscoEnUso,sb.s_inode_start + (sizeof(inodeTable)*LugarInododo),SEEK_SET);
                                         fread(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
                                         InodoUso2.i_block[x] = bloqueActual;
@@ -1471,21 +1373,9 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                                         fwrite(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
                                         fseek(DiscoEnUso,sb.s_block_start+(sizeof(bloqueArchivo)*bloqueActual),SEEK_SET);
                                         fwrite(&nBA,sizeof(bloqueArchivo),1,DiscoEnUso);
-                                        caracteres = caracteres - 64;
+                                        caracteres = caracteres - 63;
                                     }else{
-
-                                        for(index = 0; index < caracteres; index++){
-                                            if(Indicadorcont == 0){
-                                                nBA.b_content[index] = charNum + '0';
-                                                charNum++;
-                                                if(charNum == 10){
-                                                    charNum = 0;
-                                                }
-                                            }else if(Indicadorcont == 1){
-                                                nBA.b_content[index] = llenador[conIndex];
-                                                conIndex ++;
-                                            }
-                                        }
+                                        Caracteres(caracteres,index,Indicadorcont,nBA,charNum,llenador,conIndex);
                                         fseek(DiscoEnUso,sb.s_inode_start + (sizeof(inodeTable)*LugarInododo),SEEK_SET);
                                         fread(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
                                         InodoUso2.i_block[x] = bloqueActual;
@@ -1494,7 +1384,6 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
                                         fwrite(&InodoUso2,sizeof(inodeTable),1,DiscoEnUso);
                                         fseek(DiscoEnUso,sb.s_block_start+(bloqueActual * sizeof(bloqueArchivo)),SEEK_SET);
                                         fwrite(&nBA,sizeof(bloqueArchivo),1,DiscoEnUso);
-
                                     }
 
                                 }
@@ -1515,4 +1404,19 @@ int mkfile::CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion
 
             }
         }
+}
+void mkfile::Caracteres(int caracteres, int index, int Indicadorcont,bloqueArchivo nBA,int charNum,char*llenador,int conIndex){
+        for(index = 0; index < 63; index++){
+            if(Indicadorcont == 0){
+                nBA.b_content[index] = charNum + '0';
+                charNum++;
+                if(charNum == 10){
+                    charNum = 0;
+                }
+            }else if(Indicadorcont == 1){
+                nBA.b_content[index] = llenador[conIndex];
+                conIndex ++;
+            }
+        }
+
 }

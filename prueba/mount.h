@@ -17,6 +17,9 @@
 #include "login.h"
 #include "mkdir.h"
 #include "mkfile.h"
+#include "journal.h"
+#include "perdida.h"
+#include "listaordenada.h"
 using namespace std;
 
 class Mount
@@ -36,8 +39,10 @@ public:
     QString namemount = "";
 
     listamount *lista = new listamount();
-    Graficas *gra = new Graficas();
-    Mkfs *mks = new Mkfs();
+    Listaordenada *lista2 = new Listaordenada();
+
+    Mkfs mks;
+    Journal jour;
 
 
     QString getId(QString path);
@@ -123,6 +128,18 @@ public:
     QString mkfile_path = "";
     int mkfile_size = 0;
     QString mkfile_cont = "";
+
+    //para loss
+    void AutomataLoss(QString lexema,QString token,int flag);
+    int estadoloss = 0;
+    QString loss_id = "";
+    Perdida los;
+
+    // para cat
+    void AutomatCat(QString lexema, QString token, int flag);
+    int estadocat = 0;
+    QString filecat = "";
+    int num_cat = -1;
    //
 };
 

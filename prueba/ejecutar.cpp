@@ -146,7 +146,9 @@ void Ejecutar:: Concatenar2(char *p,QString direccion){
                         if (comillas == 0) comillas = 1;
                         else comillas = 0;
                     }else {
-                        if (*p == 35) comentario = 1;
+                        if (*p == 35){
+                            comentario = 1;
+                        }
                         if (*p != 32 && *p != 10 && *p != 9){
                             palabra[contador] = *p;
                             contador++;
@@ -209,7 +211,7 @@ const char* palabrasReservadas22(char palabra[400]){
         return "type";
     }else if(strcmp(palabra, "-delete=") == 0 || strcmp(palabra, "-Delete=") == 0 ){
         return "delete";
-    }else if(strcmp(palabra, "-name=") == 0 || strcmp(palabra, "-Name=") == 0 ){
+    }else if(strcmp(palabra, "-name=") == 0 || strcmp(palabra, "-Name=") == 0 || strcmp(palabra, "-naMe=") == 0|| strcmp(palabra, "-NamE=") == 0  ) {
         return "name";
     }else if(strcmp(palabra, "add") == 0 || strcmp(palabra, "Add") == 0 ){
         return "add";
@@ -255,7 +257,7 @@ const char* palabrasReservadas22(char palabra[400]){
         return "mkfile";
     }else if(strcmp(palabra, "-cont=") == 0 || strcmp(palabra, "-Cont=") == 0 ){
         return "cont";
-    }else if(strcmp(palabra, "-ruta->") == 0 || strcmp(palabra, "-Ruta->") == 0 ){
+    }else if(strcmp(palabra, "-ruta=") == 0 || strcmp(palabra, "-Ruta=") == 0 ){
         return "ruta";
     }else if(strcmp(palabra, "Loss") == 0 || strcmp(palabra, "loss") == 0 ){
         return "loss";

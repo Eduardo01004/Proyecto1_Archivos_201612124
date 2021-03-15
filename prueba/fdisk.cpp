@@ -268,17 +268,18 @@ void Fdisk::CrearParticionPrimaria(QString path,char unit,int size,QString type,
     fread(&auxmbr,sizeof( MBR),1,disco);//para leer el struct
 
     int tam_particion = Size(unit,size);
-    bool flag_part = true;
+    bool flag_part = false;
     char buffer = '1';
-
+    int posicion;
     for (int i = 0; i < 4; i++){
-        if (auxmbr.mbr_partition[i].part_status == '0'){
-            flag_part = false;
+        if (auxmbr.mbr_partition[i].part_status == '1'|| auxmbr.mbr_partition[i].part_start == -1 ){
+            flag_part = true;
+            posicion = i;
             break;
         }
     }
 
-    if (flag_part && type != "L"){
+    if (flag_part == false && type != "L"){
         cout << "Ya hay 4 particiciones,primarias" << endl;
         fclose(disco);
     }else {
@@ -286,14 +287,14 @@ void Fdisk::CrearParticionPrimaria(QString path,char unit,int size,QString type,
                 if (tam_particion <= auxmbr.mbr_tamano){
                     int inicio = sizeof(MBR);
                     int final = inicio + tam_particion;
-                    int posicion = 0;
+                    //int posicion = 0;
                     int tam = 0 ;
 
                     for (int i = 0; i < 4; i++){
                         if (auxmbr.mbr_partition[i].part_start != -1){
                             inicio = auxmbr.mbr_partition[i].part_start + auxmbr.mbr_partition[i].part_size;
                             final = inicio + tam_particion;
-                            posicion = i + 1 ;
+                            //posicion = i + 1 ;
                             tam = tam + auxmbr.mbr_partition[i].part_size;
                         }else break;
                     }
@@ -305,8 +306,9 @@ void Fdisk::CrearParticionPrimaria(QString path,char unit,int size,QString type,
                             if (fit == "W") auxmbr.mbr_partition[posicion].part_fit = 'W';
                             else if (fit == "B") auxmbr.mbr_partition[posicion].part_fit = 'B';
                             else auxmbr.mbr_partition[posicion].part_fit = 'F';
-
-                            auxmbr.mbr_partition[posicion].part_start = inicio;
+                            if (posicion == 0 )auxmbr.mbr_partition[posicion].part_start = sizeof(MBR);
+                            else auxmbr.mbr_partition[posicion].part_start = auxmbr.mbr_partition[posicion-1 ].part_start + auxmbr.mbr_partition[posicion-1].part_size;
+                            //auxmbr.mbr_partition[posicion].part_start = inicio;
                             auxmbr.mbr_partition[posicion].part_status = '0';
                             auxmbr.mbr_partition[posicion].part_size = tam_particion;
                             strcpy(auxmbr.mbr_partition[posicion].part_name,name.toStdString().c_str());
@@ -349,34 +351,39 @@ void Fdisk::CrearExtendida(QString path,char unit,int size,QString type,QString 
     }
 
     if (flag_part == true  && type != "L"){
-        cout << "Ya hay 4 particiciones Extendidas " << endl;
+        cout << "Ya hay 1 particion Extendida" << endl;
         fclose(disco);
     }else {
         if (!BuscarParticion(name,path)){
-            //if (auxmbr.disk_fit == 'F'){
                 if (tam_particion <= auxmbr.mbr_tamano){
                     int inicio = sizeof(MBR);
                     int final = inicio + tam_particion;
                     int posicion = 0;
                     int tam = 0 ;
-
+                    for (int i = 0; i < 4; i++){
+                        if (auxmbr.mbr_partition[i].part_start == -1 || auxmbr.mbr_partition[i].part_status == '1'){
+                            posicion = i;
+                            break;
+                        }
+                    }
                     for (int i = 0; i < 4; i++){
                         if (auxmbr.mbr_partition[i].part_start != -1){
-                            cout << "entra aqui 3 " << endl;
                             inicio = auxmbr.mbr_partition[i].part_start + auxmbr.mbr_partition[i].part_size;
                             final = inicio + tam_particion;
-                            posicion = i + 1 ;
+                            //posicion = i + 1 ;
                             tam = tam + auxmbr.mbr_partition[i].part_size;
                         }else break;
                     }
                         if (final <= auxmbr.mbr_tamano){
+                            cout << "posicion " << posicion << endl;
                             auxmbr.mbr_partition[posicion].part_type = 'E';
+
                             if (fit == "W") auxmbr.mbr_partition[posicion].part_fit = 'W';
                             else if (fit == "B") auxmbr.mbr_partition[posicion].part_fit = 'B';
                             else auxmbr.mbr_partition[posicion].part_fit = 'F';
 
-
-                            auxmbr.mbr_partition[posicion].part_start = inicio;
+                            if (posicion == 0) auxmbr.mbr_partition[posicion].part_start = sizeof(MBR);
+                            else auxmbr.mbr_partition[posicion].part_start = auxmbr.mbr_partition[posicion-1 ].part_start + auxmbr.mbr_partition[posicion-1].part_size;
                             auxmbr.mbr_partition[posicion].part_status = '0';
                             auxmbr.mbr_partition[posicion].part_size = tam_particion;
                             strcpy(auxmbr.mbr_partition[posicion].part_name,name.toStdString().c_str());
@@ -387,12 +394,11 @@ void Fdisk::CrearExtendida(QString path,char unit,int size,QString type,QString 
                             fseek(disco, auxmbr.mbr_partition[posicion].part_start, SEEK_SET);
                             ebr.part_start = auxmbr.mbr_partition[posicion].part_start;
                             ebr.part_fit = 'F';
-                            ebr.part_status = '1';
+                            ebr.part_status = '0';
                             ebr.part_size = 0;
                             ebr.part_next = -1;
                             strcpy(ebr.part_name,"");
                             int tamebr = tam_particion -  sizeof(EBR);
-
                             fwrite(&ebr, sizeof (EBR), 1, disco);
                             for (int i = 0; i < tamebr; i++){
                                 fwrite(&buffer,1,1,disco);
@@ -414,8 +420,10 @@ void Fdisk::CrearLogica(QString path,char unit,int size,QString type,QString nam
         int tam_part = Size(unit,size);
         if (file != nullptr){
             MBR mbr;
+            bool encontrado = false;
             fseek(file, 0, SEEK_SET);
             fread(&mbr, sizeof (MBR), 1, file);
+
             if (Existe_Extendida(mbr,1)){
                 poslogica = pos_Extendida(mbr);
                 if (!BuscarParticion(name,path)){

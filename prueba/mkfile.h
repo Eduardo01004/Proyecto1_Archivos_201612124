@@ -24,6 +24,7 @@ public:
     Mkdir dirm;
     int CrearArchivo(FILE *DiscoEnUso,char *path,char fit,bool indicadorp,int inicio_particion,int size,QString cont,bool flag_root);
     int CREARA(FILE *DiscoEnUso,char fit,int indicadorp,int inicio_particion,char*pampa,int size,QString cont);
+    void Caracteres(int caracteres, int index, int Indicadorcont,bloqueArchivo nBA,int charNum,char*llenador,int conIndex);
 
 };
 

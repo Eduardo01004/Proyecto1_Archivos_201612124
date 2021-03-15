@@ -17,7 +17,7 @@ class Login
 {
 public:
     Login();
-    void Loguear(int index,FILE *disco,MBR auxmbr,QString direccion,QString usr,QString pass,USERLOG userlog,int index2,int tipo,EBR ebr);
+    int Loguear(int index,FILE *disco,MBR auxmbr,QString direccion,QString usr,QString pass,USERLOG userlog,int index2,int tipo,EBR ebr);
     QString retornarContent(QString direccion,int inicioI,int InicioB);
     int BuscarG(QString path, int inicio);
     int CrearGrupo(FILE *disco,QString contenido,QString direccion);
@@ -30,6 +30,8 @@ public:
     QString path;
     int id_user;
     int id_grp;
+    int inicio_journal;
+    QString usuario;
     Mkgrp gr ;
 };
 

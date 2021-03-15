@@ -48,8 +48,8 @@ int Mkdir::BuscarCoA(FILE *DiscoEnUSo,char *path, int inicio,int *numeracion){
         bool flag = false;
         for (int j = 0; j < 12; j++){
             if (InodoUso.i_block[j] != -1){
-                //fseek(DiscoEnUSo,inicio,SEEK_SET);
-                //fread(&sb,sizeof(superBloque),1,DiscoEnUSo);
+                fseek(DiscoEnUSo,inicio,SEEK_SET);
+                fread(&sb,sizeof(superBloque),1,DiscoEnUSo);
                 fseek(DiscoEnUSo,sb.s_block_start + (sizeof(bloqueCarpetas) * InodoUso.i_block[j]),SEEK_SET);
                 fread(&BC,sizeof(bloqueCarpetas),1,DiscoEnUSo);
                 for (int y = 0; y < 4; y++){
@@ -65,8 +65,8 @@ int Mkdir::BuscarCoA(FILE *DiscoEnUSo,char *path, int inicio,int *numeracion){
                         *numeracion = BC.b_content[y].b_inodo;
                         return 1;
                     }else if ((i != contador - 1)&&(strcasecmp(BC.b_content[y].b_name,lista.at(i).c_str()) == 0)) {
-                        //fseek(DiscoEnUSo,inicio,SEEK_SET);
-                        //fread(&sb,sizeof(superBloque),1,DiscoEnUSo);
+                        fseek(DiscoEnUSo,inicio,SEEK_SET);
+                        fread(&sb,sizeof(superBloque),1,DiscoEnUSo);
                         LugarInododo = sb.s_inode_start + (sizeof(inodeTable)*BC.b_content[y].b_inodo);
                         flag = true;
                         break;
@@ -153,7 +153,6 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                         int bitLibre = 0;
                         int bitlibre2 = 0;
                         int a =0;
-                        //bitLibre = grp.buscarBloque(DiscoEnUso,index,1,fit);
                         if (fit == 'F'){
                             int bitlibe2 = firsFitInodo(DiscoEnUso,inicio);
                             if (bitlibe2 == -1) cout << " no se puede crear1 " <<endl;
@@ -176,7 +175,6 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                         strcpy(OTROBA.i_atime, dateC.c_str());
                         strcpy(OTROBA.i_ctime, dateC.c_str());
                         strcpy(OTROBA.i_mtime, dateC.c_str());
-                        //bitlibre2 = grp.buscarBloque(DiscoEnUso,index,2,fit);
                         if (fit == 'F'){
                             int bitlibe2 = firsFit(DiscoEnUso,inicio);
                             if (bitlibe2 == -1) cout << " no se puede crear2 " <<endl;
@@ -187,7 +185,7 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
 
                         }
                         OTROBA.i_block[0] = bitlibre2;
-                        for(a = 1;a<15;a++){
+                        for(a = 1; a < 15; a++){
                             OTROBA.i_block[a] = -1;
                         }
                         OTROBA.i_type = '0';
@@ -224,7 +222,6 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                     int bitlibre2 = 0;
                     int segui = 0;
                     int a = 0;
-                    //bitlibre2 = grp.buscarBloque(DiscoEnUso,index,2,fit);
                     if (fit == 'F'){
                         int bitlibe2 = firsFit(DiscoEnUso,inicio);
                         if (bitlibe2 == -1) cout << " no se puede crear3 " <<endl;
@@ -247,8 +244,6 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                         fwrite(&InodoUso,sizeof(inodeTable),1,DiscoEnUso);
                         fseek(DiscoEnUso,sb.s_bm_block_start + (bitlibre2*sizeof(char)),SEEK_SET);
                         fwrite(&auxbituno,sizeof(char),1,DiscoEnUso);
-
-                        //bitLibre = grp.buscarBloque(DiscoEnUso,index,1,fit);
                         if (fit == 'F'){
                             int bitlibe2 = firsFitInodo(DiscoEnUso,inicio);
                             if (bitlibe2 == -1) cout << " no se puede crear4 " <<endl;
@@ -279,7 +274,6 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                         strcpy(OTROBA.i_atime, dateC.c_str());
                         strcpy(OTROBA.i_ctime, dateC.c_str());
                         strcpy(OTROBA.i_mtime, dateC.c_str());
-                        //bitlibre2 = grp.buscarBloque(DiscoEnUso,index,2,fit);
                         if (fit == 'F'){
                             int bitlibe2 = firsFit(DiscoEnUso,inicio);
                             if (bitlibe2 == -1) cout << " no se puede crear5 " <<endl;
@@ -317,11 +311,12 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                         sb.s_first_ino = sb.s_first_ino +1;
                         fseek(DiscoEnUso,inicio,SEEK_SET);
                         fwrite(&sb,sizeof(superBloque),1,DiscoEnUso);
+                        strcpy(Unionpath,copiaPath2);
                     return 6;
                 }
 
             }
-        else if (contador >1){
+        else if (contador > 1){
                 int SaberExiste = BuscarCoA(DiscoEnUso,LarutaDelaCarpeta,inicio,&LugarInododo);//ptrp
                 if(SaberExiste == 0){
                     if(flag_P == 0){
@@ -380,7 +375,6 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                             int bitLibre = 0;
                             int bitlibre2 = 0;
                             int a =0;
-                            //bitLibre = grp.buscarBloque(DiscoEnUso,index,1,fit);
                             if (fit == 'F'){
                                 int bitlibe2 = firsFitInodo(DiscoEnUso,inicio);
                                 if (bitlibe2 == -1) cout << " no se puede crear6 " <<endl;
@@ -403,7 +397,6 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                             strcpy(OTROBA.i_atime, dateC.c_str());
                             strcpy(OTROBA.i_ctime, dateC.c_str());
                             strcpy(OTROBA.i_mtime, dateC.c_str());
-                            //bitlibre2 = grp.buscarBloque(DiscoEnUso,index,2,fit);
                             if (fit == 'F'){
                                 int bitlibe2 = firsFit(DiscoEnUso,inicio);
                                 if (bitlibe2 == -1) cout << " no se puede crear7 " <<endl;
@@ -443,6 +436,7 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                             sb.s_first_blo = sb.s_first_blo +1;
                             fseek(DiscoEnUso,inicio,SEEK_SET);
                             fwrite(&sb,sizeof(superBloque),1,DiscoEnUso);
+                            strcpy(Unionpath,copiaPath2);
                             return 6;
                     }else if (libre == 0){
                             char auxbituno = '1';
@@ -450,7 +444,6 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                             int bitlibre2 = 0;
                             int segui = 0;
                             int a = 0;
-                            //bitlibre2 = grp.buscarBloque(DiscoEnUso,index,2,fit);
                             if (fit == 'F'){
                                 int bitlibe2 = firsFit(DiscoEnUso,inicio);
                                 if (bitlibe2 == -1) cout << " no se puede crear8 " <<endl;
@@ -473,7 +466,6 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                             fwrite(&InodoUso,sizeof(inodeTable),1,DiscoEnUso);
                             fseek(DiscoEnUso,sb.s_bm_block_start + (bitlibre2*sizeof(char)),SEEK_SET);
                             fwrite(&auxbituno,sizeof(char),1,DiscoEnUso);
-                            //bitLibre = grp.buscarBloque(DiscoEnUso,inicio,1,fit);
                             if (fit == 'F'){
                                 int bitlibe2 = firsFitInodo(DiscoEnUso,inicio);
                                 if (bitlibe2 == -1) cout << " no se puede crear " <<endl;
@@ -504,7 +496,6 @@ int Mkdir::CrearCarpeta(FILE *DiscoEnUso,char fit,int indicador,int inicio,char*
                             strcpy(OTROBA.i_atime, dateC.c_str());
                             strcpy(OTROBA.i_ctime, dateC.c_str());
                             strcpy(OTROBA.i_mtime, dateC.c_str());
-                            //bitlibre2 = grp.buscarBloque(DiscoEnUso,index,2,fit);
                             if (fit == 'F'){
                                 int bitlibe2 = firsFit(DiscoEnUso,inicio);
                                 if (bitlibe2 == -1) cout << " no se puede crear9 " <<endl;

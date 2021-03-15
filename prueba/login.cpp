@@ -7,10 +7,12 @@ Login::Login()
     id_grp = 0;
     id_user = 0;
     path = "";
+    inicio_journal = 0;
+    usuario = "";
 
 }
 
-void Login::Loguear(int index,FILE *disco,MBR auxmbr,QString direccion,QString usr,QString pass,USERLOG userlog,int index2,int tipo,EBR auxebr){
+int Login::Loguear(int index,FILE *disco,MBR auxmbr,QString direccion,QString usr,QString pass,USERLOG userlog,int index2,int tipo,EBR auxebr){
     superBloque super;
     inodeTable inodo;
     string dic = direccion.toStdString();
@@ -31,9 +33,8 @@ void Login::Loguear(int index,FILE *disco,MBR auxmbr,QString direccion,QString u
         fwrite(&inodo,sizeof(inodeTable),1,disco);
         fclose(disco);
         inicioSuper = auxmbr.mbr_partition[index].part_start;
-        cout << "inicio super del login " << inicioSuper <<endl;
-        cout << "index "<< index <<endl;
         fit = 'F';//auxmbr.mbr_partition[index].part_fit;
+        inicio_journal = auxmbr.mbr_partition[index].part_start + sizeof(superBloque);
 
         QString contenido = retornarContent(dic.c_str(),super.s_inode_start + sizeof(inodeTable),super.s_block_start);
         QStringList lista1 = contenido.split('\n');
@@ -44,6 +45,7 @@ void Login::Loguear(int index,FILE *disco,MBR auxmbr,QString direccion,QString u
             string co = lista2.value(1).toStdString();
             if( co == "U"){
                 string usuario = "" + usr.toStdString();
+                cout << usuario << " == " << lista2.value(3).toStdString() << endl;
                 if(lista2.value(3).toStdString() == usuario){
                     string password = "" + pass.toStdString();
                     if (lista2.value(4).toStdString() == password){
@@ -51,10 +53,13 @@ void Login::Loguear(int index,FILE *disco,MBR auxmbr,QString direccion,QString u
                         grupo = lista2.value(2);
                         path = direccion;
                         cout << "Sesion Iniciada con exito. Con el nombre de usuario:"<< lista2.value(3).toStdString() <<endl;
+                        return 1;
                     }else {
+
                         cout << "ERROR contrasena mal escrita" << endl;
+                        return 2;
                     }
-                }else cout << "Error EL usuario no existe" << endl;
+                }
             }
         }
 
@@ -100,6 +105,7 @@ void Login::Loguear(int index,FILE *disco,MBR auxmbr,QString direccion,QString u
                     string password = " " + pass.toStdString();
                     if (lista2.value(4).toStdString() == password){
                         userlog.id_user = lista2.value(0).toInt();
+                        id_user = lista2.value(0).toInt();
                         grupo = lista2.value(2);
                         cout << "Sesion Iniciada con exito. Con el nombre de usuario:"<< lista2.value(3).toStdString() <<endl;
                     }else {
@@ -115,6 +121,7 @@ void Login::Loguear(int index,FILE *disco,MBR auxmbr,QString direccion,QString u
             if( co == " G"){
                 if(lista2.value(2) == grupo){
                     userlog.id_grup = lista2.value(0).toInt();
+                    id_grp =lista2.value(0).toInt();
                 }else cout << "Error EL Grupo no existe" << endl;
             }
         }
@@ -146,7 +153,6 @@ QString Login::retornarContent(QString direccion,int inicioI,int InicioB){
 
                     bloqueArchivo archivo;
                     fseek(discoaux,super.s_block_start,SEEK_SET);
-                    cout << "super " << super.s_block_start <<endl;
                     fread(&archivo,sizeof(bloqueArchivo),1,discoaux);
                     for(int j = 0; j < inodo.i_block[i]; j++){
                         fread(&archivo,sizeof(bloqueArchivo),1,discoaux);
@@ -236,17 +242,17 @@ int Login::CrearGrupo(FILE *disco,QString  contenido,QString name){
     fseek(disco,super.s_block_start + sizeof(bloqueArchivo)*posicion,SEEK_SET);
     fread(&archivo,sizeof(bloqueArchivo),1,disco);
 
-    usando = static_cast<int>(retornartam(strlen(archivo.b_content)));
+    usando = retornartam(strlen(archivo.b_content));
     strcpy(cadena_obtenida,contenido.toStdString().c_str());
-    tam_actual = static_cast<int>(strlen(cadena_obtenida));
-    cout << tam_actual <<"<="<< usando <<endl;
+    tam_actual = strlen(cadena_obtenida);
     if (tam_actual <= usando){
         int respuesta = gr.llenar1(disco,super,archivo,inodoUsuario,posicion,cadena_obtenida,tam_actual);
-
         return 1;
     }else {
        char fase1[40]="";
        char fase2[40]="";
+       memset(fase1,0,sizeof(fase1));
+       memset(fase2,0,sizeof(fase2));
        int registros = 0;
        for(registros = 0; registros < usando; registros++){
            char aux[4]={0};
@@ -262,7 +268,7 @@ int Login::CrearGrupo(FILE *disco,QString  contenido,QString name){
        //int respuesta = gr.llenar2(disco,super,archivo,inodoUsuario,posicion,fase2,tam_actual,inicioSuper,'F');
        int superblock = super.s_block_start;
        int superinodo = super.s_inode_start;
-       int bitlibe = 0;
+       int bitlibe;
       fseek(disco,super.s_block_start + (sizeof(bloqueArchivo) * posicion),SEEK_SET);
       fwrite(&archivo,sizeof(bloqueArchivo),1,disco);
       bloqueArchivo archAux;
@@ -277,13 +283,10 @@ int Login::CrearGrupo(FILE *disco,QString  contenido,QString name){
       }else if (fit == 'B'){
 
       }
-      cout << "inicio " << inicioSuper <<endl;
-      //bitlibe = gr.buscarBloque(disco,inicioSuper,2,'F');
-      cout << "bitlibe " << bitlibe << endl;
       fseek(disco,super.s_block_start+ (sizeof(bloqueArchivo)*bitlibe),SEEK_SET);
       fwrite(&archAux,sizeof(bloqueArchivo),1,disco);
 
-      fseek(disco,super.s_bm_block_start + bitlibe,SEEK_SET);
+      fseek(disco,super.s_bm_block_start + (bitlibe*sizeof(char)),SEEK_SET);
       fputc('2',disco);
 
       fseek(disco,super.s_inode_start + sizeof(inodeTable),SEEK_SET);
@@ -307,8 +310,6 @@ int Login::CrearGrupo(FILE *disco,QString  contenido,QString name){
       fseek(disco,inicioSuper,SEEK_SET);
       fwrite(&super,sizeof(superBloque),1,disco);
       return 1;
-       //return respuesta;
-
     }
     return 1;
 }
@@ -374,6 +375,8 @@ int Login::BuscarU(QString name, int inicio){
             if (lista2.value(3).toStdString() == caca){
                 return -1;
             }else {
+                usuario = lista2.value(3);
+
                 grup = atoi(lista2.value(0).toStdString().c_str()) + 1;
                 grupo = grupo + 1;
             }

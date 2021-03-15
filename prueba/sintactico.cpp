@@ -30,6 +30,8 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkusr = 1;
             flag_mkdir = 0;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if (lexema == "rmdisk"){
             flag_mkdisk = 0;
             flag_rmdisk = 1;
@@ -43,6 +45,8 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkusr = 1;
             flag_mkdir = 0;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if (lexema == "fdisk"){
             flag_mkdisk = 0;
             flag_rmdisk = 0;
@@ -56,6 +60,8 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkusr = 1;
             flag_mkdir = 0;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if (lexema == "exec"){
             flag_mkdisk = 0;
             flag_rmdisk = 0;
@@ -69,6 +75,8 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkusr = 1;
             flag_mkdir = 0;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if (lexema == "rep"){
             flag_mkdisk = 0;
             flag_rmdisk = 0;
@@ -81,6 +89,8 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkgrp = 0;
             flag_mkdir = 0;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if (lexema == "mount"){
             flag_mkdisk = 0;
             flag_rmdisk = 0;
@@ -93,6 +103,8 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkgrp = 0;
             flag_mkusr = 1;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if (lexema == "unmount"){
             flag_mkdisk = 0;
             flag_rmdisk = 0;
@@ -104,6 +116,8 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkgrp = 0;
             flag_mkusr = 1;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if(lexema == "mkfs"){
             flag_mkdisk = 0;
             flag_rmdisk = 0;
@@ -117,6 +131,8 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkusr = 1;
             flag_mkdir = 0;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if (lexema == "login"){
             flag_mkdisk = 0;
             flag_rmdisk = 0;
@@ -128,9 +144,11 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkfs = 0;
             flag_login = 1;
             flag_mkgrp = 0;
-            flag_mkusr = 1;
+            flag_mkusr = 0;
             flag_mkdir = 0;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if (lexema == "logout"){
             mo->AutomataLogout();
             flag_mkdisk = 0;
@@ -143,9 +161,11 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkfs = 0;
             flag_login = 0;
             flag_mkgrp = 0;
-            flag_mkusr = 1;
+            flag_mkusr = 0;
             flag_mkdir = 0;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if (lexema == "pause"){
             flag_mkdisk = 0;
             flag_rmdisk = 0;
@@ -157,9 +177,11 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkfs = 0;
             flag_login = 0;
             flag_mkgrp = 0;
-            flag_mkusr = 1;
+            flag_mkusr = 0;
             flag_mkdir = 0;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if (lexema == "mkgrp"){
             flag_mkdisk = 0;
             flag_rmdisk = 0;
@@ -171,9 +193,11 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkfs = 0;
             flag_login = 0;
             flag_mkgrp = 1;
-            flag_mkusr = 1;
+            flag_mkusr = 0;
             flag_mkdir = 0;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if (lexema == "mkusr"){
             flag_mkdisk = 0;
             flag_rmdisk = 0;
@@ -188,6 +212,8 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkusr = 1;
             flag_mkdir = 0;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if (lexema == "mkdir"){
             flag_mkdisk = 0;
             flag_rmdisk = 0;
@@ -202,6 +228,8 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkusr = 0;
             flag_mkdir = 1;
             flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 0;
         }else if (lexema == "mkfile"){
             flag_mkdisk = 0;
             flag_rmdisk = 0;
@@ -216,6 +244,41 @@ void Sintactico::Analisis(QString direccion,int flag){
             flag_mkusr = 0;
             flag_mkdir = 0;
             flag_mkfile = 1;
+            flag_cat = 0;
+            flag_loss = 0;
+        }else if (lexema == "cat"){
+            flag_mkdisk = 0;
+            flag_rmdisk = 0;
+            flag_fdisk = 0;
+            flag_exec = 0;
+            flag_rep = 0;
+            flag_mount = 0;
+            flag_unmount = 0;
+            flag_mkfs = 0;
+            flag_login = 0;
+            flag_mkgrp = 0;
+            flag_mkusr = 0;
+            flag_mkdir = 0;
+            flag_mkfile = 0;
+            flag_cat = 1;
+            flag_loss = 0;
+        }else if (lexema == "loss"){
+            flag_mkdisk = 0;
+            flag_rmdisk = 0;
+            flag_fdisk = 0;
+            flag_exec = 0;
+            flag_rep = 0;
+            flag_mount = 0;
+            flag_unmount = 0;
+            flag_mkfs = 0;
+            flag_login = 0;
+            flag_mkgrp = 0;
+            flag_mkusr = 0;
+            flag_mkdir = 0;
+            flag_mkfile = 0;
+            flag_cat = 0;
+            flag_loss = 1;
+
         }
 
         if (token == "exit"){
@@ -248,7 +311,10 @@ void Sintactico::Analisis(QString direccion,int flag){
         else if (flag_mkusr) mo->AutomataMkusr(lexema,token,flag_mkusr);
         else if (flag_mkdir) mo->AutomataMkdir(lexema,token,flag_mkdir);
         else if (flag_mkfile) mo->AutomataMkfile(lexema,token,flag_mkfile);
+        else if (flag_cat) mo->AutomatCat(lexema,token,flag_cat);
+        else if (flag_loss) mo->AutomataLoss(lexema,token,flag_loss);
         else if (lexema == "logout"){}
+        else if (lexema == "comentario") {}
         else if (lexema == "pause"){
             string pausa;
             cout<<""<<endl;
